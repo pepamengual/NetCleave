@@ -24,7 +24,7 @@ def main():
     ### Seeking MS into UniProt ###
     print("Seeking for MS peptides into UniProt data...")
     adjacent_lenght = 5
-    large_peptide_ = seek_ms_uniprot.seeking_ms(iedb_data, uniprot_data, adjacent_lenght)
+    large_uniprot_peptide_dict = seek_ms_uniprot.seeking_ms(iedb_data, uniprot_data, adjacent_lenght)
 
 if __name__ == "__main__":
     main()
