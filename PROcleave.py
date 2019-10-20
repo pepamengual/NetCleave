@@ -2,6 +2,7 @@ from predictor.iedb_functions import ms_extractor
 from predictor.general import save_pickle
 from predictor.uniprot_functions import uniprot_extractor
 from predictor.core import seek_ms_uniprot
+from predictor.core import analyze_distribution
 
 def main():
     ### IEDB ###
@@ -24,7 +25,10 @@ def main():
     ### Seeking MS into UniProt ###
     print("Seeking for MS peptides into UniProt data...")
     adjacent_lenght = 5
-    large_uniprot_peptide_dict = seek_ms_uniprot.seeking_ms(iedb_data, uniprot_data, adjacent_lenght)
+    large_uniprot_peptide = seek_ms_uniprot.seeking_ms(iedb_data, uniprot_data, adjacent_lenght)
+
+    frequency_dictionary_preadjacent = analyze_distribution.distribution_analyzer(large_uniprot_peptide, adjacent_lenght)
+    print(frequency_dictionary_preadjacent)
 
 if __name__ == "__main__":
     main()
