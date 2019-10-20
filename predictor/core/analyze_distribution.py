@@ -12,5 +12,18 @@ def distribution_analyzer(data, adjacent_lenght):
         for residue, counts in residue_dict.items():
             frequency = counts / number_of_peptides
             frequency_dictionary.setdefault(position, {}).setdefault(residue, frequency)
-    
     return frequency_dictionary
+
+
+def distribution_plotter(frequency_dictionary_preadjacent, adjacent_lenght):
+    import matplotlib.pyplot as plt
+
+    residue_letters = "ACDEFGHIKLMNPQRSTVWY"
+    print("Amino acid - position frequencies")
+    for residue in residue_letters:
+        frequencies_per_residue_list = [frequency_dictionary_preadjacent[i][residue] for i in range(adjacent_lenght)]
+        frequencies_per_residue_str = " ".join(map(str, frequencies_per_residue_list))
+        plt.plot(frequencies_per_residue_list, label=residue)
+        print(residue, frequencies_per_residue_str)
+    plt.legend()
+    plt.show()
