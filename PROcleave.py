@@ -2,6 +2,7 @@ from predictor.iedb_functions import ms_extractor
 from predictor.general import save_pickle
 from predictor.uniprot_functions import uniprot_extractor
 from predictor.core import seek_ms_uniprot
+from predictor.core import random_model
 from predictor.core import analyze_distribution
 
 def main():
@@ -27,7 +28,13 @@ def main():
     adjacent_lenght = 5
     large_uniprot_peptide = seek_ms_uniprot.seeking_ms(iedb_data, uniprot_data, adjacent_lenght)
 
-    frequency_dictionary_preadjacent = analyze_distribution.distribution_analyzer(large_uniprot_peptide, adjacent_lenght)
-    analyze_distribution.distribution_plotter(frequency_dictionary_preadjacent, adjacent_lenght)
+    #frequency_dictionary_preadjacent = analyze_distribution.distribution_analyzer(large_uniprot_peptide, adjacent_lenght)
+    #analyze_distribution.distribution_plotter(frequency_dictionary_preadjacent, adjacent_lenght)
+    frequency_random_model = random_model.random_model_maker(large_uniprot_peptide)
+    frequency_dictionary_cleavage_region = analyze_distribution.distribution_cleavage(large_uniprot_peptide, adjacent_lenght, frequency_random_model)
+
+    for cleavage_region, frequency in sorted(frequency_dictionary_cleavage_region.items(), key=lambda kv: kv[1]):
+        print(cleavage_region, frequency)
+
 if __name__ == "__main__":
     main()
