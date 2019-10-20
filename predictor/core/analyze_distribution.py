@@ -3,7 +3,7 @@ def distribution_analyzer(data, adjacent_lenght):
     data_dictionary = {}
     for peptide in data:
         for position, residue in enumerate(peptide):
-            if position <= adjacent_lenght:
+            if position < adjacent_lenght:
                 data_dictionary.setdefault(position, {}).setdefault(residue, 0)
                 data_dictionary[position][residue] += 1
     number_of_peptides = len(data)
