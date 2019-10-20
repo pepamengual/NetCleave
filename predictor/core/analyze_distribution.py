@@ -26,6 +26,8 @@ def distribution_plotter(frequency_dictionary_preadjacent, adjacent_lenght):
     plt.show()
 
 def distribution_cleavage(data, adjacent_lenght, frequency_random_model):
+    import numpy as np
+    count = 0
     data_dictionary = {}
     for peptide in data:
         pre_cleavage = peptide[adjacent_lenght]
@@ -33,9 +35,13 @@ def distribution_cleavage(data, adjacent_lenght, frequency_random_model):
         cleavage_region = "".join(pre_cleavage + post_cleavage)
         data_dictionary.setdefault(cleavage_region, 0)
         data_dictionary[cleavage_region] += 1
+        count += 1
+
     frequency_dictionary = {}
     for cleavage_region, counts in data_dictionary.items():
-        frequency = (counts / len(data)) / (frequency_random_model[cleavage_region[0]] * frequency_random_model[cleavage_region[1]])
-        frequency_dictionary.setdefault(cleavage_region, frequency)
+        frequency = (counts / count)
+        probability_cleavage_region_random = (frequency_random_model[cleavage_region[0]] * frequency_random_model[cleavage_region[1]])
+        probability = np.log2(frequency / probability_cleavage_region_random) * -1
+        frequency_dictionary.setdefault(cleavage_region, probability)
     return frequency_dictionary
 
