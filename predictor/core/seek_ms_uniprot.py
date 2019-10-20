@@ -26,7 +26,11 @@ def seeking_ms(ms_data, uniprot_data, adjacent_lenght):
                     found_in_uniprot_not_sequence += 1
             else:
                 not_found_in_uniprot += 1
+    print("\n")
+    print("Results summary...")
     print("{} / {} peptides have been found in UniProt.".format(found_in_uniprot_and_sequence, total_peptides))
     print("{} peptides have deprecated UniProt ID.".format(not_found_in_uniprot))
     print("{} peptides could not be located in its UniProt sequence.".format(found_in_uniprot_not_sequence))
     print("{} / {} peptides have both adjacent sequences of lenght {}.".format(having_adjacent, found_in_uniprot_and_sequence, adjacent_lenght))
+
+    return data
