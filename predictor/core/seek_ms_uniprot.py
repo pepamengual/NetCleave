@@ -7,7 +7,7 @@ def seeking_ms(ms_data, uniprot_data, adjacent_lenght):
     found_in_uniprot_not_sequence = 0
     having_adjacent = 0
 
-    data = {}
+    data = []
     for uniprot_id, peptide_set in ms_data.items():
         for peptide in peptide_set:
             total_peptides += 1
@@ -20,7 +20,7 @@ def seeking_ms(ms_data, uniprot_data, adjacent_lenght):
                     post_sequence = adjacent_sequences[1][:adjacent_lenght]
                     if len(pre_sequence) == adjacent_lenght and len(post_sequence) == adjacent_lenght:
                         large_peptide = "".join(pre_sequence + peptide + post_sequence)
-                        data.setdefault(uniprot_id, []).append(large_peptide)
+                        data.append(large_peptide)
                         having_adjacent += 1
                 else:
                     found_in_uniprot_not_sequence += 1
