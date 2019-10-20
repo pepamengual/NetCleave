@@ -28,7 +28,9 @@ def main():
     large_uniprot_peptide = seek_ms_uniprot.seeking_ms(iedb_data, uniprot_data, adjacent_lenght)
 
     frequency_dictionary_preadjacent = analyze_distribution.distribution_analyzer(large_uniprot_peptide, adjacent_lenght)
-    print(frequency_dictionary_preadjacent)
+    residue = "ACDEFGHIKLMNPQRSTVWY"
+    for r in residue:
+        print(r, [frequency_dictionary_preadjacent[i][r] for i in range(adjacent_lenght)])
 
 if __name__ == "__main__":
     main()
