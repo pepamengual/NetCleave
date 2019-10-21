@@ -37,7 +37,8 @@ def main():
     
     ### Random model from UniProt ###
     print("Computing random probabilities from UniProt...")
-    pre_post_cleavage = {"left": [adjacent_lenght -2, adjacent_lenght - 1, adjacent_lenght], "right": [(adjacent_lenght + 1) * -1, adjacent_lenght * -1]}
+    pre_post_cleavage = {"left": [adjacent_lenght - 1, adjacent_lenght, adjacent_lenght + 1], "right": [(adjacent_lenght + 1) * -1, adjacent_lenght * -1, (adjacent_lenght - 1) * -1]}
+    #pre_post_cleavage = {"left": [adjacent_lenght -2, adjacent_lenght - 1, adjacent_lenght, adjacent_lenght + 1], "right": [(adjacent_lenght + 1) * -1, adjacent_lenght * -1]}
     frequency_random_model = random_model.random_model_uniprot_collections(uniprot_data)
     
     ### Computing cleavage probabilities ###
@@ -51,11 +52,18 @@ def main():
     ### Scoring MS peptides ###
     print("Scoring MS peptides...")
     scored_dict = score_cleavage_sites.scoring_peptides(large_uniprot_peptide, probability_dictionary_cleavage_region, pre_post_cleavage)
+    from scipy.stats import ks_2samp
+    print(ks_2samp(scored_dict["Cleavage sites"], scored_dict["Random sites"]))
+
     import matplotlib.pyplot as plt
     for position, scored_list in scored_dict.items():
-        plt.hist(scored_list, bins=50, label="{}".format(position), alpha=0.5)
-        plt.legend()    
+        plt.hist(scored_list, bins=200, label="{}".format(position), alpha=0.5)
+        plt.legend()
+    plt.xlabel("PROcleave score {} left {} right".format("".join(map(str, pre_post_cleavage["left"])), "".join(map(str, (map(abs, pre_post_cleavage["right"]))))))
+    plt.ylabel("Number of peptides")
+    plt.savefig("fig_PROcleave_{}_{}.png".format("".join(map(str, pre_post_cleavage["left"])), "".join(map(str, (map(abs, pre_post_cleavage["right"]))))))
     plt.show()
-
+    
+    
 if __name__ == "__main__":
     main()
