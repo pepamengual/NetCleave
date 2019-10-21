@@ -1,9 +1,12 @@
 from predictor.iedb_functions import ms_extractor
-from predictor.general import save_pickle
 from predictor.uniprot_functions import uniprot_extractor
 from predictor.core import seek_ms_uniprot
 from predictor.core import random_model
 from predictor.core import analyze_distribution
+from predictor.core import score_cleavage_sites
+from predictor.general import save_pickle
+from predictor.general import save_file
+
 
 def main():
     ### IEDB ###
@@ -32,15 +35,27 @@ def main():
     #frequency_random_model = random_model.random_model_all_peptides(large_uniprot_peptide)
     
     ### Random model from UniProt ###
-    print("Computing random probabilities from UniProt")
-    pre_post_cleavage = [[adjacent_lenght, adjacent_lenght + 1],[(adjacent_lenght + 1) * -1, adjacent_lenght * -1]]
+    print("Computing random probabilities from UniProt...")
+    pre_post_cleavage = [[adjacent_lenght - 1, adjacent_lenght],[(adjacent_lenght + 1) * -1, adjacent_lenght * -1]]
     frequency_random_model = random_model.random_model_uniprot_collections(uniprot_data)
+    
+    ### Computing cleavage probabilities ###
+    print("Computing cleavage probabilities...")
     probability_dictionary_cleavage_region = analyze_distribution.distribution_cleavage(large_uniprot_peptide, frequency_random_model, pre_post_cleavage)
     
-    for side, cleavage_region_dict in sorted(probability_dictionary_cleavage_region.items()):
-        for cleavage_region, probability in sorted(cleavage_region_dict.items(), key=lambda kv: kv[1]):
-            print(side, cleavage_region, probability)
-
+    ### Saving cleavage probabilities ###
+    print("Saving cleavage probabilities...")
+    save_file.file_saver(probability_dictionary_cleavage_region)
+ 
+    ### Scoring MS peptides ###
+    print("Scoring MS peptides...")
+    random_position_list = [3, adjacent_lenght, 7, 9]
+    scored_dict = score_cleavage_sites.scoring_peptides(large_uniprot_peptide, random_position_list, probability_dictionary_cleavage_region)
+    import matplotlib.pyplot as plt
+    for position, scored_list in scored_dict.items():
+        plt.hist(scored_list, bins=50, label="{}".format(position), alpha=0.5)
+        plt.legend()    
+    plt.show()
 
 if __name__ == "__main__":
     main()
