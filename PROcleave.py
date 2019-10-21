@@ -33,9 +33,9 @@ def main():
     
     ### Random model from UniProt ###
     print("Computing random probabilities from UniProt")
-    frequency_random_model = random_model.random_model_uniprot(uniprot_data)
+    frequency_random_model = random_model.random_model_uniprot_collections(uniprot_data)
     probability_dictionary_cleavage_region = analyze_distribution.distribution_cleavage(large_uniprot_peptide, adjacent_lenght, frequency_random_model)
-
+    
     for cleavage_region, probability in sorted(probability_dictionary_cleavage_region.items(), key=lambda kv: kv[1]):
         print(cleavage_region, probability)
 

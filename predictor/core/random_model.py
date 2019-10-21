@@ -16,17 +16,15 @@ def random_model_all_peptides(data):
     print(f)
     return data_frequency_dictionary
 
-
-def random_model_uniprot(uniprot_data):
+def random_model_uniprot_collections(uniprot_data):
+    from collections import Counter
+    single_string_proteome = "".join(uniprot_data.values())
+    all_counts = Counter(single_string_proteome)
     data_dictionary = {}
     amino_acids = "ACDEFGHIKLMNPQRSTVWY"
-    amino_acid_count = 0
-    for uniprot_id, peptide_sequence in uniprot_data.items():
-        for residue in peptide_sequence:
-            if residue in amino_acids:
-                data_dictionary.setdefault(residue, 0)
-                data_dictionary[residue] += 1
-                amino_acid_count += 1
+    for amino_acid in amino_acids:
+        data_dictionary.setdefault(amino_acid, all_counts[amino_acid])
+    amino_acid_count = sum(data_dictionary.values())
     data_frequency_dictionary = {}
     for amino_acid, counts in data_dictionary.items():
         frequency = counts / amino_acid_count
