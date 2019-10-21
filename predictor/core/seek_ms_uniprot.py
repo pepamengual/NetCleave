@@ -6,6 +6,11 @@ def seeking_ms(ms_data, uniprot_data, adjacent_lenght):
     found_in_uniprot_and_sequence = 0
     found_in_uniprot_not_sequence = 0
     having_adjacent = 0
+    
+    amino_acids_possible = "ACDEFGHIKLMNPQRSTVWY"
+    amino_acids_possible_set = set()
+    for amino_acid in amino_acids_possible:
+        amino_acids_possible_set.add(amino_acid)
 
     data = []
     for uniprot_id, peptide_set in ms_data.items():
@@ -20,7 +25,8 @@ def seeking_ms(ms_data, uniprot_data, adjacent_lenght):
                     post_sequence = adjacent_sequences[1][:adjacent_lenght]
                     if len(pre_sequence) == adjacent_lenght and len(post_sequence) == adjacent_lenght:
                         large_peptide = "".join(pre_sequence + peptide + post_sequence)
-                        if not "X" in large_peptide:
+                        large_peptide_set = set(large_peptide)
+                        if len(large_peptide_set.difference(amino_acids_possible_set)) == 0:
                             data.append(large_peptide)
                             having_adjacent += 1
                 else:

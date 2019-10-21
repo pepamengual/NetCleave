@@ -33,11 +33,13 @@ def main():
     
     ### Random model from UniProt ###
     print("Computing random probabilities from UniProt")
+    pre_post_cleavage = [[adjacent_lenght, adjacent_lenght + 1],[(adjacent_lenght + 1) * -1, adjacent_lenght * -1]]
     frequency_random_model = random_model.random_model_uniprot_collections(uniprot_data)
-    probability_dictionary_cleavage_region = analyze_distribution.distribution_cleavage(large_uniprot_peptide, adjacent_lenght, frequency_random_model)
+    probability_dictionary_cleavage_region = analyze_distribution.distribution_cleavage(large_uniprot_peptide, frequency_random_model, pre_post_cleavage)
     
-    for cleavage_region, probability in sorted(probability_dictionary_cleavage_region.items(), key=lambda kv: kv[1]):
-        print(cleavage_region, probability)
+    for side, cleavage_region_dict in sorted(probability_dictionary_cleavage_region.items()):
+        for cleavage_region, probability in sorted(cleavage_region_dict.items(), key=lambda kv: kv[1]):
+            print(side, cleavage_region, probability)
 
 
 if __name__ == "__main__":
