@@ -37,7 +37,7 @@ def main():
     
     ### Random model from UniProt ###
     print("Computing random probabilities from UniProt...")
-    pre_post_cleavage = {"left": [adjacent_lenght - 1, adjacent_lenght, adjacent_lenght + 1], "right": [(adjacent_lenght + 1) * -1, adjacent_lenght * -1, (adjacent_lenght - 1) * -1]}
+    pre_post_cleavage = {"left": [adjacent_lenght - 2, adjacent_lenght - 1, adjacent_lenght, adjacent_lenght + 1], "right": [(adjacent_lenght + 1) * -1, adjacent_lenght * -1, (adjacent_lenght - 1) * -1]}
     #pre_post_cleavage = {"left": [adjacent_lenght -2, adjacent_lenght - 1, adjacent_lenght, adjacent_lenght + 1], "right": [(adjacent_lenght + 1) * -1, adjacent_lenght * -1]}
     frequency_random_model = random_model.random_model_uniprot_collections(uniprot_data)
     
