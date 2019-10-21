@@ -3,6 +3,7 @@ from predictor.uniprot_functions import uniprot_extractor
 from predictor.core import seek_ms_uniprot
 from predictor.core import random_model
 from predictor.core import analyze_distribution
+from predictor.core import get_distribution_cleavage
 from predictor.core import score_cleavage_sites
 from predictor.general import save_pickle
 from predictor.general import save_file
@@ -36,12 +37,12 @@ def main():
     
     ### Random model from UniProt ###
     print("Computing random probabilities from UniProt...")
-    pre_post_cleavage = [[adjacent_lenght - 1, adjacent_lenght],[(adjacent_lenght + 1) * -1, adjacent_lenght * -1]]
+    pre_post_cleavage = {"left": [adjacent_lenght -2, adjacent_lenght - 1, adjacent_lenght], "right": [(adjacent_lenght + 1) * -1, adjacent_lenght * -1]}
     frequency_random_model = random_model.random_model_uniprot_collections(uniprot_data)
     
     ### Computing cleavage probabilities ###
     print("Computing cleavage probabilities...")
-    probability_dictionary_cleavage_region = analyze_distribution.distribution_cleavage(large_uniprot_peptide, frequency_random_model, pre_post_cleavage)
+    probability_dictionary_cleavage_region = get_distribution_cleavage.distribution_cleavage(large_uniprot_peptide, frequency_random_model, pre_post_cleavage)
     
     ### Saving cleavage probabilities ###
     print("Saving cleavage probabilities...")
@@ -49,8 +50,7 @@ def main():
  
     ### Scoring MS peptides ###
     print("Scoring MS peptides...")
-    random_position_list = [3, adjacent_lenght, 7, 9]
-    scored_dict = score_cleavage_sites.scoring_peptides(large_uniprot_peptide, random_position_list, probability_dictionary_cleavage_region)
+    scored_dict = score_cleavage_sites.scoring_peptides(large_uniprot_peptide, probability_dictionary_cleavage_region, pre_post_cleavage)
     import matplotlib.pyplot as plt
     for position, scored_list in scored_dict.items():
         plt.hist(scored_list, bins=50, label="{}".format(position), alpha=0.5)
