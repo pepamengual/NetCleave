@@ -1,13 +1,18 @@
-def random_peptides(large_uniprot_peptide, pre_post_cleavage_list, pre_post_cleavage_names, probability_dictionary_cleavage_region_list):
+def random_peptides(large_uniprot_peptide, pre_post_cleavage_list, pre_post_cleavage_names, probability_dictionary_cleavage_region_list, frequency_random_model):
     from random import choices
     amino_acid_list = list("ACDEFGHIKLMNPQRSTVWY")
+    frequency_random_model_list = list()
+    for amino_acid in amino_acid_list:
+        frequency = frequency_random_model[amino_acid]
+        frequency_random_model_list.append(frequency)
+    
     random_lenght_peptide = 30
     random_peptides = []
     original_number_peptides = len(large_uniprot_peptide)
     number_of_random_peptides = int(original_number_peptides + original_number_peptides/5)
     print("Making {} random peptides of lenght {}".format(number_of_random_peptides, random_lenght_peptide))
     for i in range(number_of_random_peptides):
-        random_peptide = "".join(choices(amino_acid_list, k=random_lenght_peptide))
+        random_peptide = "".join(choices(amino_acid_list, weights = frequency_random_model_list, k=random_lenght_peptide))
         random_peptides.append(random_peptide)
     print("Random peptides generated succesfully")
     random_scores = []
@@ -39,7 +44,7 @@ def random_peptides(large_uniprot_peptide, pre_post_cleavage_list, pre_post_clea
     print("{} / {} random peptides scored, using {}".format(random_scored_peptides_succesfully, number_of_random_peptides, len(exact_name_random_peptides)))
     return exact_name_random_peptides
 
-def scoring_peptides(large_uniprot_peptide, pre_post_cleavage_list, pre_post_cleavage_names, probability_dictionary_cleavage_region_list):
+def scoring_peptides(large_uniprot_peptide, pre_post_cleavage_list, pre_post_cleavage_names, probability_dictionary_cleavage_region_list, frequency_random_model):
     amino_acid_list = list("ACDEFGHIKLMNPQRSTVWY")
     scored_dict = {}
     print("Scoring cleavage peptides")
@@ -63,7 +68,7 @@ def scoring_peptides(large_uniprot_peptide, pre_post_cleavage_list, pre_post_cle
         scored_dict.setdefault("Cleavage sites", []).append(min_score)
     print("Cleavage peptides scored succesfully")
     
-    random_scores = random_peptides(large_uniprot_peptide, pre_post_cleavage_list, pre_post_cleavage_names, probability_dictionary_cleavage_region_list)
+    random_scores = random_peptides(large_uniprot_peptide, pre_post_cleavage_list, pre_post_cleavage_names, probability_dictionary_cleavage_region_list, frequency_random_model)
     scored_dict.setdefault("Random sites", random_scores)
     
     return scored_dict

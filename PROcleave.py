@@ -7,7 +7,10 @@ from predictor.core import get_distribution_cleavage
 from predictor.core import score_cleavage_sites_new
 from predictor.general import save_pickle
 from predictor.general import save_file
-
+from predictor.general import plot_histogram
+from predictor.general import compute_mcc
+from scipy.stats import ks_2samp
+import matplotlib.pyplot as plt
 
 def main():
     ### IEDB ###
@@ -31,9 +34,6 @@ def main():
     print("Seeking for MS peptides into UniProt data...")
     adjacent_lenght = 5
     large_uniprot_peptide = seek_ms_uniprot.seeking_ms(iedb_data, uniprot_data, adjacent_lenght)
-    #frequency_dictionary_preadjacent = analyze_distribution.distribution_analyzer(large_uniprot_peptide, adjacent_lenght)
-    #analyze_distribution.distribution_plotter(frequency_dictionary_preadjacent, adjacent_lenght)
-    #frequency_random_model = random_model.random_model_all_peptides(large_uniprot_peptide)
     
     ### Random model from UniProt ###
     print("Computing random probabilities from UniProt...")
@@ -57,21 +57,17 @@ def main():
  
     ### Scoring MS peptides ###
     print("Scoring MS peptides...")
-    scored_dict = score_cleavage_sites_new.scoring_peptides(large_uniprot_peptide, pre_post_cleavage_list, pre_post_cleavage_names, probability_dictionary_cleavage_region_list)
-    from scipy.stats import ks_2samp
+    scored_dict = score_cleavage_sites_new.scoring_peptides(large_uniprot_peptide, pre_post_cleavage_list, pre_post_cleavage_names, probability_dictionary_cleavage_region_list, frequency_random_model)
+    
+    ### Computing KS and p-value ###
     print(ks_2samp(scored_dict["Cleavage sites"], scored_dict["Random sites"]))
 
-    import matplotlib.pyplot as plt
-    for position, scored_list in scored_dict.items():
-        plt.hist(scored_list, bins=200, label="{}".format(position), alpha=0.5)
-        plt.legend()
-    #plt.xlabel("PROcleave score {} left {} right".format("".join(map(str, pre_post_cleavage["left"])), "".join(map(str, (map(abs, pre_post_cleavage["right"]))))))
-    plt.xlabel("PROcleavage score")
-    plt.ylabel("Number of peptides")
-    plt.savefig("fig_PROcleave_4-3_4-3.png")
-    #plt.savefig("fig_PROcleave_{}_{}.png".format("".join(map(str, pre_post_cleavage["left"])), "".join(map(str, (map(abs, pre_post_cleavage["right"]))))))
-    plt.show()
-    
-    
+    ### Plotting histogram ###
+    plot_name = "fig_PROcleave_4-3_4-3.png"
+    plot_histogram.histogram_plotter(plot_name, scored_dict)
+
+    ### Computing MCC ###
+    compute_mcc.mcc_computer(scored_dict)
+
 if __name__ == "__main__":
     main()
