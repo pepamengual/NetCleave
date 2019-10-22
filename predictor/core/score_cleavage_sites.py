@@ -15,7 +15,7 @@ def scoring_peptides(large_uniprot_peptide, probability_dictionary_cleavage_regi
             if side == "left":
                 cleavage_region_left += cleavage_site
                 random_cleavage_region_left += random_cleavage_site
-            if side == "right": # right
+            if side == "right":
                 cleavage_region_right += cleavage_site
                 random_cleavage_region_right += random_cleavage_site
 

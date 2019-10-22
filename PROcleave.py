@@ -4,7 +4,7 @@ from predictor.core import seek_ms_uniprot
 from predictor.core import random_model
 from predictor.core import analyze_distribution
 from predictor.core import get_distribution_cleavage
-from predictor.core import score_cleavage_sites
+from predictor.core import score_cleavage_sites_new
 from predictor.general import save_pickle
 from predictor.general import save_file
 
@@ -37,21 +37,27 @@ def main():
     
     ### Random model from UniProt ###
     print("Computing random probabilities from UniProt...")
-    pre_post_cleavage = {"left": [adjacent_lenght - 2, adjacent_lenght - 1, adjacent_lenght, adjacent_lenght + 1], "right": [(adjacent_lenght + 1) * -1, adjacent_lenght * -1, (adjacent_lenght - 1) * -1]}
-    #pre_post_cleavage = {"left": [adjacent_lenght -2, adjacent_lenght - 1, adjacent_lenght, adjacent_lenght + 1], "right": [(adjacent_lenght + 1) * -1, adjacent_lenght * -1]}
+    pre_post_cleavage_large = {"left": [adjacent_lenght - 2, adjacent_lenght - 1, adjacent_lenght, adjacent_lenght + 1], "right": [(adjacent_lenght + 2) * -1, (adjacent_lenght + 1) * -1, adjacent_lenght * -1, (adjacent_lenght - 1) * -1]}
+    pre_post_cleavage_short = {"left": [adjacent_lenght - 1, adjacent_lenght, adjacent_lenght + 1], "right": [(adjacent_lenght + 1) * -1, adjacent_lenght * -1, (adjacent_lenght - 1) * -1]}
+    
+    pre_post_cleavage_list = [pre_post_cleavage_large, pre_post_cleavage_short]
+    pre_post_cleavage_names = ["large", "short"]
     frequency_random_model = random_model.random_model_uniprot_collections(uniprot_data)
     
     ### Computing cleavage probabilities ###
     print("Computing cleavage probabilities...")
-    probability_dictionary_cleavage_region = get_distribution_cleavage.distribution_cleavage(large_uniprot_peptide, frequency_random_model, pre_post_cleavage)
+    probability_dictionary_cleavage_region_large = get_distribution_cleavage.distribution_cleavage(large_uniprot_peptide, frequency_random_model, pre_post_cleavage_large)
+    probability_dictionary_cleavage_region_short = get_distribution_cleavage.distribution_cleavage(large_uniprot_peptide, frequency_random_model, pre_post_cleavage_short)
     
+    probability_dictionary_cleavage_region_list = [probability_dictionary_cleavage_region_large, probability_dictionary_cleavage_region_short]
+
     ### Saving cleavage probabilities ###
     print("Saving cleavage probabilities...")
-    save_file.file_saver(probability_dictionary_cleavage_region)
+    #save_file.file_saver(probability_dictionary_cleavage_region)
  
     ### Scoring MS peptides ###
     print("Scoring MS peptides...")
-    scored_dict = score_cleavage_sites.scoring_peptides(large_uniprot_peptide, probability_dictionary_cleavage_region, pre_post_cleavage)
+    scored_dict = score_cleavage_sites_new.scoring_peptides(large_uniprot_peptide, pre_post_cleavage_list, pre_post_cleavage_names, probability_dictionary_cleavage_region_list)
     from scipy.stats import ks_2samp
     print(ks_2samp(scored_dict["Cleavage sites"], scored_dict["Random sites"]))
 
