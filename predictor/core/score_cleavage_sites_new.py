@@ -3,18 +3,15 @@ def random_peptides(large_uniprot_peptide, pre_post_cleavage_list, pre_post_clea
     amino_acid_list = list("ACDEFGHIKLMNPQRSTVWY")
     random_lenght_peptide = 30
     random_peptides = []
-    print("Making {} random peptides of lenght {}".format(len(large_uniprot_peptide), random_lenght_peptide))
-    for i in range(len(large_uniprot_peptide)):
+    original_number_peptides = len(large_uniprot_peptide)
+    number_of_random_peptides = int(original_number_peptides + original_number_peptides/5)
+    print("Making {} random peptides of lenght {}".format(number_of_random_peptides, random_lenght_peptide))
+    for i in range(number_of_random_peptides):
         random_peptide = "".join(choices(amino_acid_list, k=random_lenght_peptide))
         random_peptides.append(random_peptide)
     print("Random peptides generated succesfully")
-    peptides_not_found = 0
     random_scores = []
-    max_value_left = max(probability_dictionary_cleavage_region_list[0]["left"].values())
-    max_value_right = max(probability_dictionary_cleavage_region_list[0]["right"].values())
-    max_value = max_value_left + max_value_right
-
-    print("Max assigned")
+    random_scored_peptides_succesfully = 0
     for peptide in random_peptides:
         score_list = []
         for pre_post_cleavage, pre_post_cleavage_name, probability_dictionary_cleavage_region in zip(pre_post_cleavage_list, pre_post_cleavage_names, probability_dictionary_cleavage_region_list):
@@ -32,15 +29,15 @@ def random_peptides(large_uniprot_peptide, pre_post_cleavage_list, pre_post_clea
                 score_both = round(score_left + score_right, 6)
                 score_list.append(score_both)
             except:
-                score_list.append(max_value)
-                peptides_not_found += 1
                 continue
         if len(score_list) >= 1:
             min_score = min(score_list)
             random_scores.append(min_score)
-    print("{} / {} random peptides could not be found".format(peptides_not_found / 2, len(random_peptides)))
-    print("F")
-    return random_scores
+            random_scored_peptides_succesfully += 1
+
+    exact_name_random_peptides = random_scores[:original_number_peptides]
+    print("{} / {} random peptides scored, using {}".format(random_scored_peptides_succesfully, number_of_random_peptides, len(exact_name_random_peptides)))
+    return exact_name_random_peptides
 
 def scoring_peptides(large_uniprot_peptide, pre_post_cleavage_list, pre_post_cleavage_names, probability_dictionary_cleavage_region_list):
     amino_acid_list = list("ACDEFGHIKLMNPQRSTVWY")
