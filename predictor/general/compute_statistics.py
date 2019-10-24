@@ -9,6 +9,7 @@ def statistics(scored_dict, plot_name):
     """ Computing ROC curve
     """
     roc_computer(tpr_list, fpr_list, plot_name)
+    return max_mcc, index
 
 def mcc_computer(scored_dict):
     import numpy as np

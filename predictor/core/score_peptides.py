@@ -6,13 +6,14 @@ def main_scorer(large_uniprot_peptide, erad_cleavage, proteasome_cleavage, erad_
     scored_dict = {}
     print("Generating random peptides...")
     random_peptides, random_lenght_peptide, original_number_peptides, number_of_random_peptides_to_make = generate_random_peptides(large_uniprot_peptide, frequency_random_model)
-    
+
     print("Scoring random peptides...")
     random_erad_best_scores, random_proteasome_best_scores, random_erad_proteasome_best_scores = score_peptides(random_peptides, erad_cleavage, proteasome_cleavage, erad_cleavage_probabilities, proteasome_cleavage_probabilities, frequency_random_model)
     exact_number_random_erad = random_erad_best_scores[:original_number_peptides]
     exact_number_random_proteasome = random_proteasome_best_scores[:original_number_peptides]
     exact_number_random_erad_proteasome = random_erad_proteasome_best_scores[:original_number_peptides]
-    
+    print("Number of peptides in ERAD {}, PROTEASOME {}, ERAD+PROTEASOME {} from {}".format(len(exact_number_random_erad), len(exact_number_random_proteasome), len(exact_number_random_erad_proteasome), original_number_peptides))
+     
     print("Scoring MS peptides...")
     ms_erad_best_scores, ms_proteasome_best_scores, ms_erad_proteasome_best_scores = score_peptides(large_uniprot_peptide, erad_cleavage, proteasome_cleavage, erad_cleavage_probabilities, proteasome_cleavage_probabilities, frequency_random_model)
 
@@ -30,7 +31,7 @@ def generate_random_peptides(large_uniprot_peptide, frequency_random_model):
     random_peptides = []
     random_lenght_peptide = 30
     original_number_peptides = len(large_uniprot_peptide)
-    number_of_random_peptides_to_make = int(original_number_peptides + original_number_peptides/5)
+    number_of_random_peptides_to_make = int(original_number_peptides * 2)
 
     amino_acid_list = list("ACDEFGHIKLMNPQRSTVWY")
     frequency_random_model_list = list()

@@ -66,11 +66,11 @@ def main():
         print("--> KS-test:")
         print(ks_2samp(ms_peptide_scores, random_peptide_scores))
 
-        print("--> Plotting {} histogram".format(kind_prediction))
-        plot_histogram.histogram_plotter(plot_name, peptide_dictionary_ms_random)
-        
         print("Computing MCC and plotting ROC curve...")
-        compute_statistics.statistics(peptide_dictionary_ms_random, plot_name)
+        max_mcc, index = compute_statistics.statistics(peptide_dictionary_ms_random, plot_name)
+
+        print("--> Plotting {} histogram".format(kind_prediction))
+        plot_histogram.histogram_plotter(plot_name, peptide_dictionary_ms_random, max_mcc, index)
 
 if __name__ == "__main__":
     main()
