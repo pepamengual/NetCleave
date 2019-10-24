@@ -64,7 +64,7 @@ def main():
         print("{} only prediction:".format(kind_prediction))
         print(ks_2samp(ms_peptide_scores, random_peptide_scores))
         plot_histogram.histogram_plotter(plot_name, peptide_dictionary_ms_random)
-        #compute_mcc_roc.mcc_roc_computer(peptide_dictionary_ms_random, plot_name)
+        compute_mcc_roc.mcc_roc_computer(peptide_dictionary_ms_random, plot_name)
 
 if __name__ == "__main__":
     main()

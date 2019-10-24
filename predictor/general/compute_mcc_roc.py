@@ -1,16 +1,16 @@
-
 def mcc_roc_computer(scored_dict, plot_name):
     import numpy as np
     print("Computing MCC...")
-    mcc_list = []
-    score_list = []
+    mcc_dict = {}
+    
     cleavaged_list = sorted(scored_dict["MS"])
     random_list = sorted(scored_dict["RANDOM"])
-
+    
+    all_list = cleavaged_list + random_list
     tpr_list = []
     fpr_list = []
 
-    for i in np.arange(-15, 15, 0.1):
+    for i in np.arange(min(all_list) -0.1, max(all_list) + 0.1, 0.1):
         TP = len([x for x in cleavaged_list if x <= i])
         FP = len([x for x in random_list if x < i])
         FN = len([x for x in cleavaged_list if x >= i])
@@ -29,12 +29,12 @@ def mcc_roc_computer(scored_dict, plot_name):
             MCC = round(((TP * TN) - (FP * FN)) / ((TP + FP)*(TP + FN)*(TN + FP)*(TN + FN))**0.5, 2)
         except:
             MCC = 0
-        mcc_list.append(MCC)
-        score_list.append(i)
-    max_mcc = max(mcc_list)
-    max_index = mcc_list.index(max_mcc)
-    max_score = score_list[max_index]
-    print("Highest MCC is {} at {} score".format(max_mcc, max_score))
+        mcc_dict.setdefault(i, MCC)
+    
+    
+    max_mcc = max(mcc_dict.values())
+    index = list(mcc_dict.keys())[list(mcc_dict.values()).index(max_mcc)]
+    print("Highest MCC is {} at {} score".format(max_mcc, index))
 
     import sklearn.metrics as metrics
     import matplotlib.pyplot as plt
@@ -48,3 +48,5 @@ def mcc_roc_computer(scored_dict, plot_name):
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
     plt.savefig("{}_roc.png".format(plot_name))
+    plt.clf()
+    plt.cla()
