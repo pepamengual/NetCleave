@@ -5,4 +5,6 @@ def histogram_plotter(plot_name, scored_dict):
         plt.legend()
     plt.xlabel("PROcleavage score")
     plt.ylabel("Number of peptides")
-    plt.savefig("fig_PROcleave_4-3_4-3.png")
+    plt.savefig(plot_name)
+    plt.cla()
+    plt.clf()
