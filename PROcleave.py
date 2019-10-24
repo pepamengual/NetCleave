@@ -8,7 +8,7 @@ from predictor.core import score_peptides
 from predictor.general import save_pickle
 from predictor.general import save_file
 from predictor.general import plot_histogram
-from predictor.general import compute_mcc_roc
+from predictor.general import compute_statistics
 from scipy.stats import ks_2samp
 import matplotlib.pyplot as plt
 
@@ -61,10 +61,16 @@ def main():
         plot_name = "{}".format(kind_prediction)
         ms_peptide_scores = peptide_dictionary_ms_random["MS"]
         random_peptide_scores = peptide_dictionary_ms_random["RANDOM"]
-        print("{} only prediction:".format(kind_prediction))
+
+        print("Results of {} only prediction:".format(kind_prediction))
+        print("--> KS-test:")
         print(ks_2samp(ms_peptide_scores, random_peptide_scores))
+
+        print("--> Plotting {} histogram".format(kind_prediction))
         plot_histogram.histogram_plotter(plot_name, peptide_dictionary_ms_random)
-        compute_mcc_roc.mcc_roc_computer(peptide_dictionary_ms_random, plot_name)
+        
+        print("Computing MCC and plotting ROC curve...")
+        compute_statistics.statistics(peptide_dictionary_ms_random, plot_name)
 
 if __name__ == "__main__":
     main()
