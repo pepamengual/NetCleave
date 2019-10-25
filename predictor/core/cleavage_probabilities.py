@@ -3,13 +3,10 @@ def distribution_cleavage(large_uniprot_peptide, frequency_random_model, relevan
     count = 0
     data_dictionary = {}
     for peptide in large_uniprot_peptide:
-        cleavage_region_large = "".join([peptide[position] for position in relevant_positions["large"]])
-        cleavage_region_short = "".join([peptide[position] for position in relevant_positions["short"]])
-
-        data_dictionary.setdefault("large", {}).setdefault(cleavage_region_large, 0)
-        data_dictionary.setdefault("short", {}).setdefault(cleavage_region_short, 0)
-        data_dictionary["large"][cleavage_region_large] += 1
-        data_dictionary["short"][cleavage_region_short] += 1
+        for region, values in relevant_positions.items():
+            cleavage_region = "".join([peptide[position] for position in relevant_positions[region]])
+            data_dictionary.setdefault(region, {}).setdefault(cleavage_region, 0)
+            data_dictionary[region][cleavage_region] += 1
         count += 1
         
     frequency_dictionary = get_frequency_dictionary(data_dictionary, count, frequency_random_model, relevant_positions)

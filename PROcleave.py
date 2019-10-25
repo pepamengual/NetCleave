@@ -1,16 +1,14 @@
 from predictor.iedb_functions import ms_extractor
 from predictor.uniprot_functions import uniprot_extractor
+from predictor.general import save_pickle
 from predictor.core import seek_ms_uniprot
 from predictor.core import random_model
-from predictor.core import analyze_distribution
 from predictor.core import cleavage_probabilities
 from predictor.core import score_peptides
-from predictor.general import save_pickle
-from predictor.general import save_file
-from predictor.general import plot_histogram
 from predictor.general import compute_statistics
+from predictor.general import plot_histogram
+from predictor.general import save_file
 from scipy.stats import ks_2samp
-import matplotlib.pyplot as plt
 
 def main():
     ### IEDB ###
@@ -41,8 +39,8 @@ def main():
 
     ### Computing cleavage probabilities ###
     print("Computing cleavage probabilities...")
-    erad_cleavage = {"large": [n -3, n - 2, n - 1, n, n + 1], "short": [n - 2, n - 1, n, n + 1]}
-    proteasome_cleavage = {"large": [(n + 2) * -1, (n + 1) * -1, (n) * -1, (n - 1) * -1, (n - 2) * -1], "short": [(n + 2) * -1, (n + 1) * -1, (n) * -1, (n - 1) * -1]}
+    erad_cleavage = {"large": [n -3, n - 2, n - 1, n, n + 1], "short": [n - 2, n - 1, n, n + 1], "extra-short": [n - 1, n, n + 1]}
+    proteasome_cleavage = {"large": [(n + 2) * -1, (n + 1) * -1, (n) * -1, (n - 1) * -1, (n - 2) * -1], "short": [(n + 2) * -1, (n + 1) * -1, (n) * -1, (n - 1) * -1], "extra-short": [(n + 2) * -1, (n + 1) * -1, (n) * -1]}
     print("Computing erad cleavage probabilities...")
     erad_cleavage_probabilities = cleavage_probabilities.distribution_cleavage(large_uniprot_peptide, frequency_random_model, erad_cleavage)
     print("Computing proteasome cleavage probabilities...")

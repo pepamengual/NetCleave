@@ -7,16 +7,16 @@ def main_scorer(large_uniprot_peptide, erad_cleavage, proteasome_cleavage, erad_
     print("Generating random peptides...")
     random_peptides, random_lenght_peptide, original_number_peptides, number_of_random_peptides_to_make = generate_random_peptides(large_uniprot_peptide, frequency_random_model)
 
+    print("Scoring MS peptides...")
+    ms_erad_best_scores, ms_proteasome_best_scores, ms_erad_proteasome_best_scores = score_peptides(large_uniprot_peptide, erad_cleavage, proteasome_cleavage, erad_cleavage_probabilities, proteasome_cleavage_probabilities, frequency_random_model)
+
     print("Scoring random peptides...")
     random_erad_best_scores, random_proteasome_best_scores, random_erad_proteasome_best_scores = score_peptides(random_peptides, erad_cleavage, proteasome_cleavage, erad_cleavage_probabilities, proteasome_cleavage_probabilities, frequency_random_model)
 
-    exact_number_random_erad = random_erad_best_scores[:original_number_peptides]
-    exact_number_random_proteasome = random_proteasome_best_scores[:original_number_peptides]
-    exact_number_random_erad_proteasome = random_erad_proteasome_best_scores[:original_number_peptides]
-    print("Number of peptides in ERAD {}, PROTEASOME {}, ERAD+PROTEASOME {} from {}".format(len(exact_number_random_erad), len(exact_number_random_proteasome), len(exact_number_random_erad_proteasome), original_number_peptides))
-     
-    print("Scoring MS peptides...")
-    ms_erad_best_scores, ms_proteasome_best_scores, ms_erad_proteasome_best_scores = score_peptides(large_uniprot_peptide, erad_cleavage, proteasome_cleavage, erad_cleavage_probabilities, proteasome_cleavage_probabilities, frequency_random_model)
+    exact_number_random_erad = random_erad_best_scores[:len(ms_erad_best_scores)]
+    exact_number_random_proteasome = random_proteasome_best_scores[:len(ms_proteasome_best_scores)]
+    exact_number_random_erad_proteasome = random_erad_proteasome_best_scores[:len(ms_erad_proteasome_best_scores)]
+    print("Number of peptides in ERAD {} {}, PROTEASOME {} {}, ERAD+PROTEASOME {} {}".format(len(exact_number_random_erad), len(ms_erad_best_scores), len(exact_number_random_proteasome), len(ms_proteasome_best_scores), len(exact_number_random_erad_proteasome), len(ms_erad_proteasome_best_scores)))
 
     scored_dict.setdefault("ERAD", {}).setdefault("MS", ms_erad_best_scores)
     scored_dict.setdefault("ERAD", {}).setdefault("RANDOM", exact_number_random_erad)
@@ -62,8 +62,10 @@ def score_peptides(large_uniprot_peptide, erad_cleavage, proteasome_cleavage, er
     cleavage_methods = ["erad", "proteasome"]
     for method in cleavage_methods:
         cleavage_names.extend([method]*possible_cleavages)
-
-    cleavage_probabilities = [erad_cleavage_probabilities, erad_cleavage_probabilities, proteasome_cleavage_probabilities, proteasome_cleavage_probabilities]
+    
+    cleavage_probabilities = []
+    cleavage_probab = [erad_cleavage_probabilities, proteasome_cleavage_probabilities]
+    cleavage_probabilities.extend(cleavage_probab*possible_cleavages)
     cleavage_sequences = [erad_cleavage, proteasome_cleavage]
 
     for peptide in large_uniprot_peptide:
@@ -73,16 +75,7 @@ def score_peptides(large_uniprot_peptide, erad_cleavage, proteasome_cleavage, er
             for cleavage_name in cleavage_types:
                 sequence = "".join([peptide[position] for position in cleavage_sequence[cleavage_name]])
                 cleavage_list.append(sequence)
-       #erad_cleavage_region_large = "".join([peptide[position] for position in erad_cleavage["large"]])
-       #erad_cleavage_region_short = "".join([peptide[position] for position in erad_cleavage["short"]])
-       #proteasome_cleavage_region_large = "".join([peptide[position] for position in proteasome_cleavage["large"]])
-       #proteasome_cleavage_region_short = "".join([peptide[position] for position in proteasome_cleavage["short"]])
-       #
-       #
-       #cleavage_list = [erad_cleavage_region_large, erad_cleavage_region_short, proteasome_cleavage_region_large, proteasome_cleavage_region_short]
-       #cleavage_list_name = ["large", "short", "large", "short"]
-       #cleavage_names = ["erad", "erad", "proteasome", "proteasome"]
-       #cleavage_probabilities = [erad_cleavage_probabilities, erad_cleavage_probabilities, proteasome_cleavage_probabilities, proteasome_cleavage_probabilities]
+        
         for sequence, cleavage_name, cleavage_region, cleavage_probability in zip(cleavage_list, cleavage_list_name, cleavage_names, cleavage_probabilities):
             try:
                 score = cleavage_probability[cleavage_name][sequence]
