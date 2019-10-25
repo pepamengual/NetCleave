@@ -47,8 +47,9 @@ def main():
     proteasome_cleavage_probabilities = cleavage_probabilities.distribution_cleavage(large_uniprot_peptide, frequency_random_model, proteasome_cleavage)
 
     ### Saving cleavage probabilities ###
-    #print("Saving cleavage probabilities...")
-    #save_file.file_saver(probability_dictionary_cleavage_region)
+    print("Saving cleavage probabilities...")
+    save_file.file_saver(erad_cleavage_probabilities, "erad")
+    save_file.file_saver(proteasome_cleavage_probabilities, "proteasome")
  
     ### Scoring MS peptides ###
     print("Scoring MS peptides...")
