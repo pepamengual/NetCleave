@@ -84,13 +84,13 @@ def score_peptides(large_uniprot_peptide, erad_cleavage, proteasome_cleavage, er
                 pass
         
         if len(data_scores["erad"]) >= 1 and len(data_scores["proteasome"]) >= 1:
-            erad_proteasome_score = min(data_scores["erad"]) + min(data_scores["proteasome"])
+            erad_proteasome_score = max(data_scores["erad"]) + min(data_scores["proteasome"])
             erad_proteasome_best_scores.append(erad_proteasome_score)
         if len(data_scores["erad"]) >= 1:
-            min_erad_score = min(data_scores["erad"])
+            min_erad_score = max(data_scores["erad"])
             erad_best_scores.append(min_erad_score)
         if len(data_scores["proteasome"]) >= 1:
-            min_proteasome_score = min(data_scores["proteasome"])
+            min_proteasome_score = max(data_scores["proteasome"]) #CHANGED MIN TO MAX TO SEE HOW THE PERFORMANCE CHANGES
             proteasome_best_scores.append(min_proteasome_score)
 
     return erad_best_scores, proteasome_best_scores, erad_proteasome_best_scores

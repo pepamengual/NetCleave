@@ -23,10 +23,10 @@ def main():
     
     ### Saving pickles ###
     print("Saving MS and UniProt data into pickles...")
-    iedb_data_file_parsed_path = "../data/parsed/iedb/ms_allele_peptides.pickle"
-    save_pickle.pickle_saver(iedb_data_file_parsed_path, iedb_data)
-    uniprot_data_file_parsed_path = "../data/parsed/uniprot/uniprot_sequences.pickle"
-    save_pickle.pickle_saver(uniprot_data_file_parsed_path, uniprot_data)
+    iedb_data_file_parsed_path = "../data/parsed/iedb/ms_allele_peptides"
+    save_pickle.pickle_saver(iedb_data, iedb_data_file_parsed_path)
+    uniprot_data_file_parsed_path = "../data/parsed/uniprot/uniprot_sequences"
+    save_pickle.pickle_saver(uniprot_data, uniprot_data_file_parsed_path)
 
     ### Seeking MS into UniProt ###
     print("Seeking for MS peptides into UniProt data...")
@@ -46,11 +46,16 @@ def main():
     print("Computing proteasome cleavage probabilities...")
     proteasome_cleavage_probabilities = cleavage_probabilities.distribution_cleavage(large_uniprot_peptide, frequency_random_model, proteasome_cleavage)
 
-    ### Saving cleavage probabilities ###
-    print("Saving cleavage probabilities...")
+    ### Saving cleavage probabilities files ###
+    print("Saving cleavage probabilities files...")
     save_file.file_saver(erad_cleavage_probabilities, "erad")
     save_file.file_saver(proteasome_cleavage_probabilities, "proteasome")
- 
+    
+    ### Saving cleavage probabilities pickle ###
+    print("Saving cleavage probabilities pickle...")
+    save_pickle.pickle_saver(erad_cleavage_probabilities, "data/probability_pickle/erad")
+    save_pickle.pickle_saver(proteasome_cleavage_probabilities, "data/probability_pickle/proteasome")
+
     ### Scoring MS peptides ###
     print("Scoring MS peptides...")
     scored_dict = score_peptides.main_scorer(large_uniprot_peptide, erad_cleavage, proteasome_cleavage, erad_cleavage_probabilities, proteasome_cleavage_probabilities, frequency_random_model)
