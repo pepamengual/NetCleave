@@ -39,17 +39,22 @@ def main():
 
     ### Computing cleavage probabilities ###
     print("Computing cleavage probabilities...")
-    erad_cleavage = {"large": [n -3, n - 2, n - 1, n, n + 1], "short": [n - 2, n - 1, n, n + 1], "extra-short": [n - 1, n, n + 1]}
-    proteasome_cleavage = {"large": [(n + 2) * -1, (n + 1) * -1, (n) * -1, (n - 1) * -1, (n - 2) * -1], "short": [(n + 2) * -1, (n + 1) * -1, (n) * -1, (n - 1) * -1], "extra-short": [(n + 2) * -1, (n + 1) * -1, (n) * -1]}
+
+    erad_cleavage = {"short": [n - 2, n - 1, n, n + 1], "extra-short": [n - 1, n, n + 1]}
+    proteasome_cleavage = {"short": [(n + 2) * -1, (n + 1) * -1, (n) * -1, (n - 1) * -1], "extra-short": [(n + 2) * -1, (n + 1) * -1, (n) * -1]}
+    #erad_cleavage = {"extra-short": [n - 1, n, n + 1]}
+    #proteasome_cleavage = {"extra-short": [(n + 2) * -1, (n + 1) * -1, (n) * -1]}
+    #erad_cleavage = {"large": [n -3, n - 2, n - 1, n, n + 1], "short": [n - 2, n - 1, n, n + 1], "extra-short": [n - 1, n, n + 1]}
+    #proteasome_cleavage = {"large": [(n + 2) * -1, (n + 1) * -1, (n) * -1, (n - 1) * -1, (n - 2) * -1], "short": [(n + 2) * -1, (n + 1) * -1, (n) * -1, (n - 1) * -1], "extra-short": [(n + 2) * -1, (n + 1) * -1, (n) * -1]}
     print("Computing erad cleavage probabilities...")
-    erad_cleavage_probabilities = cleavage_probabilities.distribution_cleavage(large_uniprot_peptide, frequency_random_model, erad_cleavage)
+    erad_cleavage_probabilities, erad_counts = cleavage_probabilities.distribution_cleavage(large_uniprot_peptide, frequency_random_model, erad_cleavage)
     print("Computing proteasome cleavage probabilities...")
-    proteasome_cleavage_probabilities = cleavage_probabilities.distribution_cleavage(large_uniprot_peptide, frequency_random_model, proteasome_cleavage)
+    proteasome_cleavage_probabilities, proteasome_counts = cleavage_probabilities.distribution_cleavage(large_uniprot_peptide, frequency_random_model, proteasome_cleavage)
 
     ### Saving cleavage probabilities files ###
     print("Saving cleavage probabilities files...")
-    save_file.file_saver(erad_cleavage_probabilities, "erad")
-    save_file.file_saver(proteasome_cleavage_probabilities, "proteasome")
+    save_file.file_saver(erad_cleavage_probabilities, "erad", erad_counts)
+    save_file.file_saver(proteasome_cleavage_probabilities, "proteasome", proteasome_counts)
     
     ### Saving cleavage probabilities pickle ###
     print("Saving cleavage probabilities pickle...")

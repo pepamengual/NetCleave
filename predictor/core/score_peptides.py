@@ -16,6 +16,7 @@ def main_scorer(large_uniprot_peptide, erad_cleavage, proteasome_cleavage, erad_
     exact_number_random_erad = random_erad_best_scores[:len(ms_erad_best_scores)]
     exact_number_random_proteasome = random_proteasome_best_scores[:len(ms_proteasome_best_scores)]
     exact_number_random_erad_proteasome = random_erad_proteasome_best_scores[:len(ms_erad_proteasome_best_scores)]
+    
     print("Number of peptides in ERAD {} {}, PROTEASOME {} {}, ERAD+PROTEASOME {} {}".format(len(exact_number_random_erad), len(ms_erad_best_scores), len(exact_number_random_proteasome), len(ms_proteasome_best_scores), len(exact_number_random_erad_proteasome), len(ms_erad_proteasome_best_scores)))
 
     scored_dict.setdefault("ERAD", {}).setdefault("MS", ms_erad_best_scores)
@@ -32,7 +33,7 @@ def generate_random_peptides(large_uniprot_peptide, frequency_random_model):
     random_peptides = []
     random_lenght_peptide = 30
     original_number_peptides = len(large_uniprot_peptide)
-    number_of_random_peptides_to_make = int(original_number_peptides * 2)
+    number_of_random_peptides_to_make = int(original_number_peptides)
 
     amino_acid_list = list("ACDEFGHIKLMNPQRSTVWY")
     frequency_random_model_list = list()
@@ -57,7 +58,10 @@ def score_peptides(large_uniprot_peptide, erad_cleavage, proteasome_cleavage, er
 
     cleavage_types = list(erad_cleavage.keys()) # large, short
     possible_cleavages = len(cleavage_types) # 2
-    cleavage_list_name.extend(cleavage_types*possible_cleavages)
+    if possible_cleavages == 1:
+        cleavage_list_name.extend(cleavage_types*2)
+    else:
+        cleavage_list_name.extend(cleavage_types*possible_cleavages)
 
     cleavage_methods = ["erad", "proteasome"]
     for method in cleavage_methods:
@@ -84,13 +88,13 @@ def score_peptides(large_uniprot_peptide, erad_cleavage, proteasome_cleavage, er
                 pass
         
         if len(data_scores["erad"]) >= 1 and len(data_scores["proteasome"]) >= 1:
-            erad_proteasome_score = max(data_scores["erad"]) + min(data_scores["proteasome"])
+            erad_proteasome_score = min(data_scores["erad"]) + min(data_scores["proteasome"])
             erad_proteasome_best_scores.append(erad_proteasome_score)
         if len(data_scores["erad"]) >= 1:
-            min_erad_score = max(data_scores["erad"])
+            min_erad_score = min(data_scores["erad"])
             erad_best_scores.append(min_erad_score)
         if len(data_scores["proteasome"]) >= 1:
-            min_proteasome_score = max(data_scores["proteasome"]) #CHANGED MIN TO MAX TO SEE HOW THE PERFORMANCE CHANGES
+            min_proteasome_score = min(data_scores["proteasome"]) #CHANGED MIN TO MAX TO SEE HOW THE PERFORMANCE CHANGES
             proteasome_best_scores.append(min_proteasome_score)
 
     return erad_best_scores, proteasome_best_scores, erad_proteasome_best_scores
