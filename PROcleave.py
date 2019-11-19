@@ -5,6 +5,7 @@ from predictor.core import seek_ms_uniprot
 from predictor.core import random_model
 from predictor.core import random_peptide_generator
 from predictor.core import get_cleavage_region
+from predictor.ml_main import NN
 
 def main():
     ### IEDB ###
@@ -41,7 +42,12 @@ def main():
     ### Saving file for ML ###
     get_cleavage_region.compute_cleavage_regions(large_uniprot_peptide, random_peptides, n)
     
+    ### Running ML ###
+    proteasome_path = "data/ml_dataframes/proteasome_dataframe_for_ml.txt"
+    NN.process_data(proteasome_path)
 
+    erap_path = "data/ml_dataframes/erap_dataframe_for_ml.txt"
+    NN.process_data(erap_path)
 
 if __name__ == "__main__":
     main()
