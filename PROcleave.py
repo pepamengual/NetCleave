@@ -1,9 +1,10 @@
-from predictor.iedb_functions import ms_extractor
-from predictor.uniprot_functions import uniprot_extractor
+from predictor.database_functions import ms_extractor
+from predictor.database_functions import uniprot_extractor
 from predictor.general import save_pickle
 from predictor.core import seek_ms_uniprot
 from predictor.core import random_model
 from predictor.core import random_peptide_generator
+from predictor.core import get_cleavage_region
 
 def main():
     ### IEDB ###
@@ -30,12 +31,16 @@ def main():
     
     ### Random model from UniProt ###
     print("Computing random probabilities from UniProt...")
-    frequency_random_model = random_model.random_model_uniprot_collections(uniprot_data)
+    #frequency_random_model = random_model.random_model_uniprot_collections(uniprot_data)
+    frequency_random_model = {'A': 0.08258971312579017, 'C': 0.013826094946210853, 'D': 0.054625650802595425, 'E': 0.0673214708897148, 'F': 0.03866188645338429, 'G': 0.07077863527330625, 'H': 0.022761656446475265, 'I': 0.05923828965491043, 'K': 0.05815460235107699, 'L': 0.09655733034859719, 'M': 0.024154886555486327, 'N': 0.04061129236837406, 'P': 0.047331721936265635, 'Q': 0.03932403048405303, 'R': 0.05534153979141534, 'S': 0.06631318414876945, 'T': 0.05355909368186356, 'V': 0.06865326331945962, 'W': 0.010987143802538912, 'Y': 0.029208513619712422}
     print(frequency_random_model)
     
     ### Generating random peptides ###
     random_peptides = random_peptide_generator.generate_random_peptides(large_uniprot_peptide, frequency_random_model)
 
+    ### Saving file for ML ###
+    get_cleavage_region.compute_cleavage_regions(large_uniprot_peptide, random_peptides, n)
+    
 
 
 if __name__ == "__main__":
