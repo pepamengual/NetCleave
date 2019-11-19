@@ -19,7 +19,7 @@ def process_data(file_path):
     training_table_texts = training_table.drop(['class'], axis=1)
     
     data_train, data_test, class_labels_train, class_labels_test = splitting_data.splitting_data(training_table_texts, class_labels)
-    classifier = MLPClassifier(hidden_layer_sizes=(100,100,100), max_iter=500, alpha=0.0001, solver='sgd', verbose=10, random_state=21, tol=0.000000001)
+    classifier = MLPClassifier(hidden_layer_sizes=(100,100,100), max_iter=500, alpha=0.0001, solver='sgd', verbose=10, random_state=42, tol=0.000000001)
     classifier.fit(data_train, class_labels_train)
     class_labels_test_predicted = classifier.predict(data_test)
 
