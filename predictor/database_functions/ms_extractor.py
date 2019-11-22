@@ -10,8 +10,7 @@ def extract_ms_data(input_file_path):
             technique = line[79]
             qualitative_value = line[83]
             allele = line[95]
-            if "mass spectrometry" in technique:
-                if "Positive" in qualitative_value:
-                    if len(uniprot_id) > 1:
-                        data.setdefault(uniprot_id, set()).add(peptide)
+            mhc_class = line[98]
+            if "mass spectrometry" in technique and "Positive" in qualitative_value and mhc_class == "I" and len(uniprot_id) > 1:
+                data.setdefault(uniprot_id, set()).add(peptide)
     return data

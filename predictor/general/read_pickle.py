@@ -1,5 +1,6 @@
 import pickle
 
-def pickle_reader(reading_path, data):
-    with open(reading_path, "rb") as f:
+def pickle_reader(reading_path):
+    with open("{}.pickle".format(reading_path), "rb") as f:
         data = pickle.load(f)
+        return data
