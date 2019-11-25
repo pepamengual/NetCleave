@@ -17,4 +17,4 @@ def generate_random_peptides(large_uniprot_peptide, frequency_random_model):
     for i in range(original_number_peptides):
         random_peptide = "".join(choices(amino_acid_list, weights = frequency_random_model_list, k=random_lenght_peptide))
         random_peptides.append(random_peptide)
-    return random_peptides
+    return random_peptides, amino_acid_list, frequency_random_model_list

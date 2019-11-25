@@ -1,10 +1,11 @@
+from keras.models import Model, Sequential
 import matplotlib.pyplot as plt
 
-def plot_history(history):
-    acc = history.history['acc']
-    val_acc = history.history['val_acc']
-    loss = history.history['loss']
-    val_loss = history.history['val_loss']
+def plot_history(history_data):
+    acc = history_data.history['accuracy']
+    val_acc = history_data.history['val_accuracy']
+    loss = history_data.history['loss']
+    val_loss = history_data.history['val_loss']
     x = range(1, len(acc) + 1)
 
     plt.figure(figsize=(12, 5))

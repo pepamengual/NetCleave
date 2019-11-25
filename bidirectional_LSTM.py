@@ -24,7 +24,8 @@ from keras.layers import Conv1D, Add, MaxPooling1D, BatchNormalization
 from keras.layers import Embedding, Bidirectional, LSTM, CuDNNLSTM, GlobalMaxPooling1D
 from predictor.ml_main.ml_utilities import plot_history
 from predictor.ml_main.ml_utilities import display_model_score
-
+from predictor.ml_main.ml_utilities import metrics_ml
+from sklearn.utils import shuffle
 
 HELP = " \
 Command:\n \
@@ -44,7 +45,8 @@ def main(generate_data=False, LSTM_model=False):
     uniprot_data_file_raw_path = "../data/raw/uniprot/uniprot_sprot.fasta"
     iedb_data_file_parsed_path = "../data/parsed/iedb/ms_allele_peptides"
     uniprot_data_file_parsed_path = "../data/parsed/uniprot/uniprot_sequences"
-    n = 6
+    n = 4 # 6
+    y = 1 # 1
     proteasome_ml_path = "data/LSTM/proteasome_df_LSTM.txt"
     erap_ml_path = "data/LSTM/erap_df_LSTM.txt"
  
@@ -62,15 +64,16 @@ def main(generate_data=False, LSTM_model=False):
         print("\n---> Generating random peptides...\n")
         #frequency_random_model = random_model.random_model_uniprot_collections(uniprot_data)
         frequency_random_model = {'A': 0.08258971312579017, 'C': 0.013826094946210853, 'D': 0.054625650802595425, 'E': 0.0673214708897148, 'F': 0.03866188645338429, 'G': 0.07077863527330625, 'H': 0.022761656446475265, 'I': 0.05923828965491043, 'K': 0.05815460235107699, 'L': 0.09655733034859719, 'M': 0.024154886555486327, 'N': 0.04061129236837406, 'P': 0.047331721936265635, 'Q': 0.03932403048405303, 'R': 0.05534153979141534, 'S': 0.06631318414876945, 'T': 0.05355909368186356, 'V': 0.06865326331945962, 'W': 0.010987143802538912, 'Y': 0.029208513619712422}
-        random_peptides = random_peptide_generator.generate_random_peptides(large_uniprot_peptide, frequency_random_model)
+        random_peptides, amino_acid_list, frequency_random_model_list = random_peptide_generator.generate_random_peptides(large_uniprot_peptide, frequency_random_model)
     
         print("\n---> Exporting df for ML algorithms...\n")
-        save_ml_input_data.export_df_for_ml(large_uniprot_peptide, random_peptides, n, proteasome_ml_path, erap_ml_path)
+        save_ml_input_data.export_df_for_ml(large_uniprot_peptide, random_peptides, amino_acid_list, frequency_random_model_list, n, y, proteasome_ml_path, erap_ml_path)
 
     if LSTM_model:
         print('\n---> Reading df for ML algorithms...\n')
         path = proteasome_ml_path
         training_table = read_table.read_training_table(path)
+        training_table = shuffle(training_table)
         class_labels = training_table['class']
         training_table_texts = training_table.drop(['class'], axis=1)
         
@@ -93,6 +96,10 @@ def main(generate_data=False, LSTM_model=False):
         train_ohe = to_categorical(train_pad)
         val_ohe = to_categorical(val_pad)
         test_ohe = to_categorical(test_pad)
+
+        one = train_ohe[0]
+        print(type(one))
+        print(one)
         
         del train_encode, val_encode, test_encode
         gc.collect()
@@ -107,28 +114,32 @@ def main(generate_data=False, LSTM_model=False):
         y_train = to_categorical(y_train_le)
         y_val = to_categorical(y_val_le)
         y_test = to_categorical(y_test_le)
-        
+        print(y_train[0])
+
         print("\n---> Constructing the Bidirectional LSTM...\n")
-        #x_input = Input(shape=(10,))
-        #emb = Embedding(21, 128, input_length=max_length)(x_input)
-        #bi_rnn = Bidirectional(CuDNNLSTM(64, kernel_regularizer=l2(0.01), recurrent_regularizer=l2(0.01), bias_regularizer=l2(0.01)))(emb)
-        #x = Dropout(0.3)(bi_rnn)
-        # softmax classifier
-        #x_output = Dense(2, activation='softmax')(x)
-        #model1 = Model(inputs=x_input, outputs=x_output)
-        #model1.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-        #model1.summary()
-        # early stopping
-        es = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
-        
         model1 = Sequential()
         model1.add(Embedding(21, 128, input_length=max_length))
-        model1.add(Bidirectional(LSTM(64)))
+        model1.add(Bidirectional(LSTM(128))) # 64
         model1.add(Dropout(0.5))
         model1.add(Dense(2, activation='sigmoid'))
-        model1.compile('adam', 'binary_crossentropy', metrics=['accuracy'])
-        
-        history1 = model1.fit(train_pad, y_train, epochs=50, batch_size=256, validation_data=(val_pad, y_val),callbacks=[es])
+        model1.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', metrics_ml.matthews_correlation])
+
+        """
+
+        activation: sigmoid
+        activation_untested = softmax
+        activation_untested = tanh
+        activation_untested = relu
+
+        loss: binary_crossentropy
+        loss_untested: categorical_crossentropy
+
+        metrics: accuracy
+        metrics_untested: matthews_correlation
+        """
+        es = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
+
+        history1 = model1.fit(train_pad, y_train, epochs=400, batch_size=256, validation_data=(val_pad, y_val), callbacks=[es])
         model1.save_weights('model_LSTM.h5')
         
         plot_history.plot_history(history1)
