@@ -26,6 +26,7 @@ from predictor.ml_main.ml_utilities import plot_history
 from predictor.ml_main.ml_utilities import display_model_score
 from predictor.ml_main.ml_utilities import metrics_ml
 from sklearn.utils import shuffle
+import numpy as np
 
 HELP = " \
 Command:\n \
@@ -39,6 +40,28 @@ def parse_args():
     parser.add_argument('--LSTM_model', help='Running LSTM on data', action='store_true')
     args = parser.parse_args()
     return args.generate_data, args.LSTM_model
+
+def aaa(numbers):
+    result = []
+    for peptido in numbers:
+        result1 = [x for b in peptido for x in b]
+        result.append(result1)
+    result_np = np.array(result)
+    '''
+    a = []
+    for k in numbers:
+        v = []
+        for i in k:
+            v.append(i)
+        v = np.array(v)
+        a.append(v)
+
+    for k in numbers:
+        len_k = len(k)
+        v = np.concatenate(k[0]
+    '''
+    print(result_np.shape)
+    return result_np
 
 def main(generate_data=False, LSTM_model=False):
     iedb_data_file_raw_path = "../data/raw/iedb/mhc_ligand_full.csv"
@@ -73,6 +96,7 @@ def main(generate_data=False, LSTM_model=False):
         print('\n---> Reading df for ML algorithms...\n')
         path = proteasome_ml_path
         training_table = read_table.read_training_table(path)
+        training_table
         training_table = shuffle(training_table)
         class_labels = training_table['class']
         training_table_texts = training_table.drop(['class'], axis=1)
@@ -91,39 +115,52 @@ def main(generate_data=False, LSTM_model=False):
         train_pad = pad_sequences(train_encode, maxlen=max_length, padding='post', truncating='post')
         val_pad = pad_sequences(val_encode, maxlen=max_length, padding='post', truncating='post')
         test_pad = pad_sequences(test_encode, maxlen=max_length, padding='post', truncating='post')
+        print(type(train_pad))
 
         print("\n---> One hot encoding...\n")
         train_ohe = to_categorical(train_pad)
         val_ohe = to_categorical(val_pad)
         test_ohe = to_categorical(test_pad)
-
-        one = train_ohe[0]
-        print(type(one))
-        print(one)
         
-        del train_encode, val_encode, test_encode
-        gc.collect()
+        train_ohe = aaa(train_ohe)
+        val_ohe = aaa(val_ohe)
+        test_ohe = aaa(test_ohe)
+        
+        print(train_ohe.shape)
+        
+        #one = train_ohe[0]
+        #print(type(one))
+        #print(one)
+        
+        #del train_encode, val_encode, test_encode
+        #gc.collect()
 
-        print("\n---> Label encoding output variable...\n")
-        le = LabelEncoder()
-        y_train_le = le.fit_transform(class_labels_train)
-        y_val_le = le.transform(class_labels_val)
-        y_test_le = le.transform(class_labels_test)
+        #print("\n---> Label encoding output variable...\n")
+        #le = LabelEncoder()
+        #y_train_le = le.fit_transform(class_labels_train)
+        #y_val_le = le.transform(class_labels_val)
+        #y_test_le = le.transform(class_labels_test)
 
-        print("\n---> One hot encoding of outputs...\n")
-        y_train = to_categorical(y_train_le)
-        y_val = to_categorical(y_val_le)
-        y_test = to_categorical(y_test_le)
-        print(y_train[0])
+        #print("\n---> One hot encoding of outputs...\n")
+        #y_train = to_categorical(y_train_le)
+        #y_val = to_categorical(y_val_le)
+        #y_test = to_categorical(y_test_le)
+        #print(y_train[0])
 
         print("\n---> Constructing the Bidirectional LSTM...\n")
         model1 = Sequential()
-        model1.add(Embedding(21, 128, input_length=max_length))
-        model1.add(Bidirectional(LSTM(128))) # 64
-        model1.add(Dropout(0.5))
-        model1.add(Dense(2, activation='sigmoid'))
+        model1.add(Dense(126, input_dim=126, activation="sigmoid"))
+        print("I")
+        model1.add(Dense(1, activation='sigmoid'))
+        print("O")
+        
+        #model1.add(Embedding(21, 128, input_length=max_length))
+        #model1.add(Bidirectional(LSTM(128))) # 64
+        #model1.add(Dropout(0.5))
+        #model1.add(Dense(1, activation='sigmoid')) # 2 
+        
         model1.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', metrics_ml.matthews_correlation])
-
+        print("C")
         """
 
         activation: sigmoid
@@ -139,11 +176,13 @@ def main(generate_data=False, LSTM_model=False):
         """
         es = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
 
-        history1 = model1.fit(train_pad, y_train, epochs=400, batch_size=256, validation_data=(val_pad, y_val), callbacks=[es])
+        history1 = model1.fit(train_ohe, class_labels_train, epochs=400, batch_size=256, validation_data=(val_ohe, class_labels_val), callbacks=[es], verbose=1)
+        #history1 = model1.fit(train_pad, class_labels_train, epochs=400, batch_size=256, validation_data=(val_pad, class_labels_val), callbacks=[es])
         model1.save_weights('model_LSTM.h5')
         
         plot_history.plot_history(history1)
-        display_model_score.display_model_score(model1, [train_pad, y_train], [val_pad, y_val], [test_pad, y_test], 256)
+        display_model_score.display_model_score(model1, [train_ohe, class_labels_train], [val_ohe, class_labels_val], [test_ohe, class_labels_test], 256)
+        #display_model_score.display_model_score(model1, [train_pad, class_labels_train], [val_pad, class_labels_val], [test_pad, class_labels_test], 256)
 
 if __name__ == "__main__":
     generate_data, LSTM_model = parse_args()
