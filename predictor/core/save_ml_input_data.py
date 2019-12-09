@@ -7,15 +7,17 @@ def export_df_for_ml(large_uniprot_peptide, random_peptides, amino_acid_list, fr
     save_file(erap_ml_path, erap_cleavage_regions_ms, erap_cleavage_regions_random, amino_acid_list, frequency_random_model_list)
 
 def get_cleavage_region(large_uniprot_peptide, random_peptides, n, y):
-    x = n - y
-    proteasome_cleavage_regions_ms = [large_uniprot_peptide[i][-n-x:-n+x] for i in range(len(large_uniprot_peptide))]
-    #proteasome_cleavage_regions_random = [random_peptides[i][-n-x:-n+x] for i in range(len(random_peptides))]
-    proteasome_cleavage_regions_random = [large_uniprot_peptide[i][-n-x-1:-n+x-1] for i in range(len(large_uniprot_peptide))]
-    
-    erap_cleavage_regions_ms = [large_uniprot_peptide[i][n-x:n+x] for i in range(len(large_uniprot_peptide))]
-    #erap_cleavage_regions_random = [random_peptides[i][n-x:n+x] for i in range(len(random_peptides))]
-    erap_cleavage_regions_random = [large_uniprot_peptide[i][n-x+1:n+x+1] for i in range(len(large_uniprot_peptide))]
-    
+    x = n - (y + 1)
+    proteasome_cleavage_regions_ms = [large_uniprot_peptide[i][-8:-2] for i in range(len(large_uniprot_peptide))]
+    proteasome_cleavage_regions_random_1 = [large_uniprot_peptide[i][-7:-1] for i in range(len(large_uniprot_peptide))]
+    #proteasome_cleavage_regions_random_2 = [large_uniprot_peptide[i][-9:-3] for i in range(len(large_uniprot_peptide))]
+    proteasome_cleavage_regions_random = proteasome_cleavage_regions_random_1
+
+    erap_cleavage_regions_ms = [large_uniprot_peptide[i][2:8] for i in range(len(large_uniprot_peptide))]
+    erap_cleavage_regions_random_1 = [large_uniprot_peptide[i][1:7] for i in range(len(large_uniprot_peptide))]
+    #erap_cleavage_regions_random_2 = [large_uniprot_peptide[i][3:9] for i in range(len(large_uniprot_peptide))]
+    erap_cleavage_regions_random = erap_cleavage_regions_random_1
+
     return proteasome_cleavage_regions_ms, proteasome_cleavage_regions_random, erap_cleavage_regions_ms, erap_cleavage_regions_random
 
 def make_random_peptide(length, amino_acid_list, frequency_random_model_list):
