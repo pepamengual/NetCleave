@@ -71,7 +71,7 @@ def proteasome_prediction(sequence, proteasome_model):
     position_df = pd.DataFrame({"position": list_of_positions}) #a dataframe of the cleavage position (+1) of the predicted sequences
     prediction_df = pd.DataFrame(prediction, columns=["prediction"]) #a dataframe of the predicted cleavages (0 no cleavage, 1 cleavage)
     proteasome_df = pd.concat([candidate_df, position_df, prediction_df], axis=1) #concatenate the above dataframes into a single one
-    
+    print(proteasome_df)   
     proteasome_cleavage_regions = proteasome_df.loc[proteasome_df["prediction"] == 1] #select rows with positive proteasome predicted cleavage
     list_of_proteasome_cleavage = proteasome_cleavage_regions["position"].tolist() #a list of the positions of the sequence that are predicted to be cleaved by the proteosome
     list_of_proteasome_cleavage.extend([0, len(sequence) - 1]) #add initial position and last position of the sequence
@@ -84,73 +84,31 @@ def peptides_cleaved_by_proteasome(sequence,list_of_proteasome_cleavage):
         list_of_proteasome_chunks = [i for i in list_of_proteasome_cleavage if i < position]
         for cleavage_possibility in list_of_proteasome_chunks:
             proteasome_chunk = sequence[cleavage_possibility : position + 1]
-            if len(proteasome_chunk) >= 10 and len(proteasome_chunk) <= 30:
+            #if len(proteasome_chunk) >= 9 and len(proteasome_chunk) <= 16:
+            if len(proteasome_chunk) >= 8:
                 list_of_peptides_cleaved_by_proteasome.append(proteasome_chunk)
                 #print(cleavage_possibility, position, sequence[position], proteasome_chunk)
     return list_of_peptides_cleaved_by_proteasome
 
-def erap_prediction(erap_model, list_of_peptides_cleaved_by_proteasome):
-    erap_cleavage_df = pd.DataFrame()
-    for peptide_cleaved_by_proteasome in list_of_peptides_cleaved_by_proteasome:
-        list_of_candidates, list_of_positions = slicing_through_sequence(peptide_cleaved_by_proteasome) #slice
-        one_hot_df = encode_candidates(list_of_candidates) #one hot encode candidates
-        prediction = erap_model.predict_classes(one_hot_df) #make prediction of candidates (0 no cleavage, 1 cleavage)
-        
-        proteasome_chunk_df = pd.DataFrame({"proteasome_chunk": [peptide_cleaved_by_proteasome]*len(list_of_candidates)})
-        candidate_df = pd.DataFrame({"sequence": list_of_candidates}) #a dataframe of the predicted sequences
-        position_df = pd.DataFrame({"position": list_of_positions}) #a dataframe of the cleavage position (+1) of the predicted sequences
-        prediction_df = pd.DataFrame(prediction, columns=["prediction"]) #a dataframe of the predicted cleavages (0 no cleavage, 1 cleavage)
-        erap_df = pd.concat([proteasome_chunk_df, candidate_df, position_df, prediction_df], axis=1) #concatenate the above dataframes into a single one
-        
-        erap_cleavage_regions = erap_df.loc[erap_df["prediction"] == 1] #select rows with positive proteasome predicted cleavage
-        if not erap_cleavage_regions.empty:
-            peptide_list = []
-            peptide_length_list = []
-            list_of_erap_cleavage = erap_cleavage_regions["position"].tolist()
-            print(peptide_cleaved_by_proteasome)
-            print()
-            print(erap_cleavage_regions)
-            print()
-            for erap_cleavage_position in list_of_erap_cleavage:
-                peptide = peptide_cleaved_by_proteasome[erap_cleavage_position + 1:]
-                peptide_list.append(peptide)
-                peptide_length_list.append(len(peptide))
-            
-            #proteasome_chunk_df = pd.DataFrame({"proteasome_chunk": [peptide_cleaved_by_proteasome]*len(peptide_list)})
-            peptide_df = pd.DataFrame({"peptide": peptide_list})
-            peptide_length_df = pd.DataFrame({"peptide_length": peptide_length_list})
-            #final_df = pd.concat([proteasome_chunk_df, peptide_df, peptide_length_df], axis=1)
-            
-            final_df = pd.concat([peptide_df, peptide_length_df], axis=1)
-            #size_filter_df = final_df.loc[(final_df["peptide_length"] >= 8) & (final_df["peptide_length"] <= 12)] # filter by peptide length
-            size_filter_df = final_df.loc[(final_df["peptide_length"] == 9)]
-            erap_cleavage_df = erap_cleavage_df.append(size_filter_df, ignore_index=True) # append peptides to a larger list
-    
-    erap_cleavage_df.drop_duplicates(inplace=True) #remove peptides duplicated
-    erap_cleavage_df.reset_index(drop=True, inplace=True) #reset the index (because of dropping)
-    return erap_cleavage_df
-
-def summary_of_predicted_peptides(erap_cleavage_df):
-    list_of_processed_peptides = erap_cleavage_df["peptide"].tolist()
-    list_of_processed_peptide_lengths = erap_cleavage_df["peptide_length"].tolist()
-    print(list_of_processed_peptides)
-    summary = dict((x,list_of_processed_peptide_lengths.count(x)) for x in set(list_of_processed_peptide_lengths))
-    for peptide_length, count in sorted(summary.items()):
-        print("Peptides of length {}: {}".format(peptide_length, count))
+def hypothetical_peptides(list_of_peptides_cleaved_by_proteasome, sequence):
+    print("Summary report\n")
+    print("9mer possibilities from your sequence: {}".format(len(sequence)))
+    peptide_set = set()
+    for peptide in list_of_peptides_cleaved_by_proteasome:
+        peptide_chosen = peptide[-9:]
+        peptide_set.add(peptide_chosen)
+    peptide_list = sorted(list(peptide_set))
+    print("9mer predicted by proteasome cleavage: {}\n".format(len(peptide_list)))
+    print(peptide_list)   
 
 def main():
     proteasome_file = "model_proteasome.h5"
     proteasome_model = load_model(proteasome_file)
     
-    erap_file = "model_erap.h5"
-    erap_model = load_model(erap_file)
-    
-    sequence = "MLLAVLYCLLWSFQTSAGHFPRACVSSKNLMEKECCPPWSGDRSPCGQLSGRGSCQNILLSNAPLGPQFPFTGVDDRESWPSVFYNRTCQCSGNFMGFNCGNCKFGFWGPNCTERRLLVRRNIFDLSAPEKDKFFAYLTLAKHTISSDYVIPIGTYGQMKNGSTPMFNDINIYDLFVWMHYYVSMDALLGGSEIWRDIDFAHEAPAFLPWHRLFLLRWEQEIQKLTGDENFTIPYWDWRDAEKCDICTDEYMGGQHPTNPNLLSPASFFSSWQIVCSRLEEYNSHQSLCNGTPEGPLRRNPGNHDKSRTPRLPSSADVEFCLSLTQYESGSMDKAANFSFRNTLEGFASPLTGIADASQSSMHNALHIYMNGTMSQVQGSANDPIFLLHHAFVDSIFEQWLRRHRPLQEVYPEANAPIGHNRESYMVPFIPLYRNGDFFISSKDLGYDYSYLQDSDPDSFQDYIKSYLEQASRIWSWLLGAAMVGAVLTALLAGLVSLLCRHKRKQLPEEKQPLLMEKEDYHSLYQSHL"
+    sequence = "LVVSFVVGGLAVILPPLSPYFKYSVMINKATP"
 
     list_of_proteasome_cleavage = proteasome_prediction(sequence, proteasome_model)
     list_of_peptides_cleaved_by_proteasome = peptides_cleaved_by_proteasome(sequence, list_of_proteasome_cleavage)
 
-    erap_cleavage_df = erap_prediction(erap_model, list_of_peptides_cleaved_by_proteasome)
-    summary_of_predicted_peptides(erap_cleavage_df)
-
+    hypothetical_peptides(list_of_peptides_cleaved_by_proteasome, sequence)
 main()

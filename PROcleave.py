@@ -47,11 +47,19 @@ def parse_args():
 def generating_raw_data(iedb_data_file_raw_path, uniprot_data_file_raw_path, n, proteasome_ml_path, erap_ml_path):
     iedb_data = ms_extractor.extract_ms_data(iedb_data_file_raw_path)
     uniprot_data = uniprot_extractor.id_sequence_extractor(uniprot_data_file_raw_path)
-    large_uniprot_peptide = seek_ms_uniprot.seeking_ms(iedb_data, uniprot_data, n)
+    large_uniprot_peptide, list_of_used_peptides = seek_ms_uniprot.seeking_ms(iedb_data, uniprot_data, n)
+
+    with open("peptides_gbm.txt", "r") as f:
+        for line in f:
+            peptide = line.rstrip()
+            if peptide in list_of_used_peptides:
+                print("True")
+            else:
+                print("False")
     #frequency_random_model = random_model.random_model_uniprot_collections(uniprot_data)
     frequency_random_model = {'A': 0.08258971312579017, 'C': 0.013826094946210853, 'D': 0.054625650802595425, 'E': 0.0673214708897148, 'F': 0.03866188645338429, 'G': 0.07077863527330625, 'H': 0.022761656446475265, 'I': 0.05923828965491043, 'K': 0.05815460235107699, 'L': 0.09655733034859719, 'M': 0.024154886555486327, 'N': 0.04061129236837406, 'P': 0.047331721936265635, 'Q': 0.03932403048405303, 'R': 0.05534153979141534, 'S': 0.06631318414876945, 'T': 0.05355909368186356, 'V': 0.06865326331945962, 'W': 0.010987143802538912, 'Y': 0.029208513619712422} #speed purposes
-    random_peptides, amino_acid_list, frequency_random_model_list = random_peptide_generator.generate_random_peptides(large_uniprot_peptide, frequency_random_model)
-    save_ml_input_data_new.export_df_for_ml(large_uniprot_peptide, random_peptides, amino_acid_list, frequency_random_model_list, n, proteasome_ml_path, erap_ml_path)
+    #random_peptides, amino_acid_list, frequency_random_model_list = random_peptide_generator.generate_random_peptides(large_uniprot_peptide, frequency_random_model)
+    #save_ml_input_data_new.export_df_for_ml(large_uniprot_peptide, random_peptides, amino_acid_list, frequency_random_model_list, n, proteasome_ml_path, erap_ml_path)
 
 def generating_dataframe_for_NN(proteasome_ml_path, erap_ml_path):
     for path, name in zip([proteasome_ml_path, erap_ml_path], ["proteasome", "erap"]):
