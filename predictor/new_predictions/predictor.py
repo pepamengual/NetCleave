@@ -17,7 +17,7 @@ absl.logging._warn_preinit_stderr = False
 logger = tf.get_logger()
 logger.disabled = True
 logger.setLevel(logging.FATAL)
-graph = tf.get_default_graph()
+#graph = tf.get_default_graph()
 import random
 import pandas as pd
 import numpy as np
@@ -109,13 +109,14 @@ def proteasome_prediction(sequence, models_export_path):
         list_of_candidates = candidate_position_dictionary["candidates"]
         list_of_positions = candidate_position_dictionary["positions"]
         one_hot_df = encode_candidates(list_of_candidates) #one hot encode candidates
-        prediction = proteasome_model.predict_classes(one_hot_df) #make prediction of candidates (0 no cleavage, 1 cleavage)
+        #prediction = proteasome_model.predict_classes(one_hot_df) #make prediction of candidates (0 no cleavage, 1 cleavage)
+        prediction = proteasome_model.predict(one_hot_df)
         candidate_df = pd.DataFrame({"sequence": list_of_candidates}) #a dataframe of the predicted sequences
         position_df = pd.DataFrame({"position": list_of_positions}) #a dataframe of the cleavage position (+1) of the predicted sequences
         prediction_df = pd.DataFrame(prediction, columns=["prediction"]) #a dataframe of the predicted cleavages (0 no cleavage, 1 cleavage)
         proteasome_df = pd.concat([candidate_df, position_df, prediction_df], axis=1) #concatenate the above dataframes into a single one
         print(proteasome_df)
-        proteasome_cleavage_regions = proteasome_df.loc[proteasome_df["prediction"] == 1] #select rows with positive proteasome predicted cleavage
+        proteasome_cleavage_regions = proteasome_df.loc[proteasome_df["prediction"] >= 0.5] #select rows with positive proteasome predicted cleavage
         list_of_proteasome_cleavage = proteasome_cleavage_regions["position"].tolist() #a list of the positions of the sequence that are predicted to be cleaved by the proteosome
         list_of_proteasome_cleavage.extend([0, len(sequence) - 1]) #add initial position and last position of the sequence
         list_of_proteasome_cleavage.sort()
