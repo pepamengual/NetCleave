@@ -77,29 +77,34 @@ def slicing_through_sequence(sequence):
             candidate_dictionary.setdefault(amino_acid, {}).setdefault("positions", []).append(position)
     return candidate_dictionary
 
-def peptides_cleaved_by_proteasome(sequence, list_of_proteasome_cleavage, all_proteasome_predictions):
+def peptides_cleaved_by_proteasome(sequence, list_of_proteasome_cleavage, all_proteasome_predictions, min_peptide_lenght_list):
     list_of_peptides_cleaved_by_proteasome = []
     for amino_acid, list_of_proteasome_cleavage in sorted(all_proteasome_predictions.items()):
         for position in list_of_proteasome_cleavage:
             list_of_proteasome_chunks = [i for i in list_of_proteasome_cleavage if i < position]
             for cleavage_possibility in list_of_proteasome_chunks:
                 proteasome_chunk = sequence[cleavage_possibility : position + 1]
-                if len(proteasome_chunk) >= 8:
+                if len(proteasome_chunk) >= min_peptide_lenght_list: #edit here if needed
                     list_of_peptides_cleaved_by_proteasome.append(proteasome_chunk)
     return list_of_peptides_cleaved_by_proteasome
 
-def hypothetical_peptides(sequence, list_of_peptides_cleaved_by_proteasome):
-    print("Summary report\n")
-    print("9mer possibilities from your sequence: {}".format(len(sequence)-8))
+def hypothetical_peptides(sequence, list_of_peptides_cleaved_by_proteasome, peptide_lenght_list):
+    print("\nSummary report\n")
+    possible_peptides = 0
+    for lenght in peptide_lenght_list:
+        possible_peptides += (len(sequence)-lenght+1)
+    print("Possible peptides of lenght {} in your sequence ({} amino acids): {}".format(peptide_lenght_list, len(sequence), possible_peptides))
     peptide_set = set()
     for peptide in list_of_peptides_cleaved_by_proteasome:
-        peptide_chosen = peptide[-9:]
-        peptide_set.add(peptide_chosen)
+        for lenght in peptide_lenght_list:
+            peptide_chosen = peptide[-lenght:]
+            peptide_set.add(peptide_chosen)
     peptide_list = sorted(list(peptide_set))
-    print("9mer predicted by proteasome cleavage: {}\n".format(len(peptide_list)))
+    print("Predicted proteasome peptides of lenght {}: {}\n".format(peptide_lenght_list, len(peptide_list)))
     print(peptide_list)
+    return peptide_list
 
-def proteasome_prediction(sequence, models_export_path):
+def proteasome_prediction(sequence, models_export_path, peptide_lenght_list):
     candidate_dictionary = slicing_through_sequence(sequence) #slice
     all_proteasome_predictions = {}
 
@@ -122,6 +127,6 @@ def proteasome_prediction(sequence, models_export_path):
         list_of_proteasome_cleavage.sort()
         all_proteasome_predictions.setdefault(amino_acid, list_of_proteasome_cleavage)
     
-    list_of_peptides_cleaved_by_proteasome = peptides_cleaved_by_proteasome(sequence, list_of_proteasome_cleavage, all_proteasome_predictions)
-    peptide_list = hypothetical_peptides(sequence, list_of_peptides_cleaved_by_proteasome)
+    list_of_peptides_cleaved_by_proteasome = peptides_cleaved_by_proteasome(sequence, list_of_proteasome_cleavage, all_proteasome_predictions, min(peptide_lenght_list))
+    peptide_list = hypothetical_peptides(sequence, list_of_peptides_cleaved_by_proteasome, peptide_lenght_list)
     return peptide_list

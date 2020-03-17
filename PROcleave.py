@@ -39,8 +39,9 @@ def main(generate=False, train=False, predict=False):
     if train:
         training_engine.create_models(training_data_path, models_export_path)
     if predict:
-        sequence = "LVVSFVVGGLAVILPPLSPYFKYSVMINKATP"
-        peptide_list = predictor.proteasome_prediction(sequence, models_export_path)
+        sequence = "LVVSFVVGGLA"
+        peptide_lenght_list = [9, 10]
+        peptide_list = predictor.proteasome_prediction(sequence, models_export_path, peptide_lenght_list)
 
 
 if __name__ == "__main__":
