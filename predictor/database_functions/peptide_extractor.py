@@ -1,4 +1,4 @@
-def extract_peptide_data(input_file_path):
+def extract_peptide_data(input_file_path, mhc_class_type):
     """
     Extracts mass spectrometry positive binding peptides of all MHC-I alleles in IEDB
     Returns a dictionary:
@@ -18,6 +18,6 @@ def extract_peptide_data(input_file_path):
             qualitative_value = line[83]
             allele = line[95]
             mhc_class = line[98]
-            if "mass spectrometry" in technique and "Positive" in qualitative_value and mhc_class == "I" and len(uniprot_id) > 1:
+            if "mass spectrometry" in technique and "Positive" in qualitative_value and mhc_class == mhc_class_type and len(uniprot_id) > 1:
                 data.setdefault(uniprot_id, set()).add(peptide)
     return data

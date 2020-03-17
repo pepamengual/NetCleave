@@ -21,7 +21,8 @@ def parse_args():
 
 def generating_training_data(iedb_path, uniprot_path, training_data_path):
     print("Generating training data...")
-    iedb_data = peptide_extractor.extract_peptide_data(iedb_path) #Reading IEDB data, consider add argument about MHC class
+    mhc_class = "I"
+    iedb_data = peptide_extractor.extract_peptide_data(iedb_path, mhc_class) #Reading IEDB data, consider add argument about MHC class
     uniprot_data = uniprot_extractor.extract_uniprot_data(uniprot_path) #Extracting uniprot data
     proteasome_dictionary = peptide_uniprot_locator.locate_peptides(iedb_data, uniprot_data) #Finding neighbours
     data_generator.prepare_cleavage_data(proteasome_dictionary, training_data_path)
@@ -39,8 +40,8 @@ def main(generate=False, train=False, predict=False):
     if train:
         training_engine.create_models(training_data_path, models_export_path)
     if predict:
-        sequence = "LVVSFVVGGLA"
-        peptide_lenght_list = [9, 10]
+        sequence = "LVVSFVVGGLAPKLEDIDLE"
+        peptide_lenght_list = [8, 9, 10]
         peptide_list = predictor.proteasome_prediction(sequence, models_export_path, peptide_lenght_list)
 
 
