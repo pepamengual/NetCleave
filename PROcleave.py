@@ -1,6 +1,6 @@
 import argparse
 from predictor.database_functions import peptide_extractor, uniprot_extractor
-from predictor.core import peptide_uniprot_locator, data_generator
+from predictor.core import peptide_uniprot_locator, training_data_generator, scoring_data_generator
 from predictor.ml_main import training_engine
 from predictor.new_predictions import predictor
 
@@ -15,9 +15,10 @@ def parse_args():
     parser = argparse.ArgumentParser(description=HELP, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--generate', help='Generate training data for the neural network', action='store_true')
     parser.add_argument('--train', help='Train the neural network', action='store_true')
-    parser.add_argument('--predict', help='Predict proteasome cleavage from FASTA sequence', action='store_true')
+    parser.add_argument('--predict_fasta', help='Predict proteasome cleavage from FASTA sequence', action='store_true')
+    parser.add_argument('--score_set', help='Predict a set of peptides from IEDB file', action='store_true')
     args = parser.parse_args()
-    return args.generate, args.train, args.predict
+    return args.generate, args.train, args.predict_fasta, args.score_set
 
 def generating_training_data(iedb_path, uniprot_path, training_data_path):
     print("Generating training data...")
@@ -25,26 +26,32 @@ def generating_training_data(iedb_path, uniprot_path, training_data_path):
     iedb_data = peptide_extractor.extract_peptide_data(iedb_path, mhc_class) #Reading IEDB data, consider add argument about MHC class
     uniprot_data = uniprot_extractor.extract_uniprot_data(uniprot_path) #Extracting uniprot data
     proteasome_dictionary = peptide_uniprot_locator.locate_peptides(iedb_data, uniprot_data) #Finding neighbours
-    data_generator.prepare_cleavage_data(proteasome_dictionary, training_data_path)
+    training_data_generator.prepare_cleavage_data(proteasome_dictionary, training_data_path)
 
-def main(generate=False, train=False, predict=False):
+def main(generate=False, train=False, predict_fasta=False, score_set=False):
     iedb_path = "../../data/raw/iedb/mhc_ligand_full.csv"
     uniprot_path = "../../data/raw/uniprot/uniprot_sprot.fasta"
     training_data_path = "data/training_data/proteasome"
     models_export_path = "data/models/proteasome"
 
-    if not any([generate, train, predict]):
+    if not any([generate, train, predict_fasta, score_set]):
         print("Please, provide an argument. See python3 PROcleave.py -h for more information")
     if generate:
         generating_training_data(iedb_path, uniprot_path, training_data_path)
     if train:
         training_engine.create_models(training_data_path, models_export_path)
-    if predict:
+    if predict_fasta:
         sequence = "LVVSFVVGGLAPKLEDIDLE"
         peptide_lenght_list = [8, 9, 10]
         peptide_list = predictor.proteasome_prediction(sequence, models_export_path, peptide_lenght_list)
-
+    if score_set:
+        mhc_class = "II" #conditions of peptides, more can be added. Changing parameters in peptide_extractor
+        export_path = "data/score_set/class_II/class_II_data.csv"
+        iedb_data = peptide_extractor.extract_peptide_data(iedb_path, mhc_class)
+        uniprot_data = uniprot_extractor.extract_uniprot_data(uniprot_path)
+        proteasome_dictionary = peptide_uniprot_locator.locate_peptides(iedb_data, uniprot_data)
+        scoring_data_generator.generating_scoring_data(proteasome_dictionary, export_path)
 
 if __name__ == "__main__":
-    generate, train, predict = parse_args()
-    main(generate, train, predict)
+    generate, train, predict_fasta, score_set = parse_args()
+    main(generate, train, predict_fasta, score_set)
