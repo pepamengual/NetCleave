@@ -2,7 +2,7 @@ import argparse
 from predictor.database_functions import peptide_extractor, uniprot_extractor
 from predictor.core import peptide_uniprot_locator, training_data_generator, scoring_data_generator
 from predictor.ml_main import training_engine
-from predictor.new_predictions import predictor
+from predictor.new_predictions import predictor_fasta, predictor_set
 
 HELP = " \
 Command:\n \
@@ -31,6 +31,9 @@ def generating_training_data(iedb_path, uniprot_path, training_data_path):
 def main(generate=False, train=False, predict_fasta=False, score_set=False):
     iedb_path = "../../data/raw/iedb/mhc_ligand_full.csv"
     uniprot_path = "../../data/raw/uniprot/uniprot_sprot.fasta"
+    
+    iedb_path = "../PROcleave_data/mhc_ligand_full.csv" # download and unzip from http://www.iedb.org/database_export_v3.php
+    uniprot_path = "../PROcleave_data/uniprot_sprot.fasta" # download and decompress from https://www.uniprot.org/downloads REVIEWED fasta
     training_data_path = "data/training_data/proteasome"
     models_export_path = "data/models/proteasome"
 
@@ -43,14 +46,15 @@ def main(generate=False, train=False, predict_fasta=False, score_set=False):
     if predict_fasta:
         sequence = "LVVSFVVGGLAPKLEDIDLE"
         peptide_lenght_list = [8, 9, 10]
-        peptide_list = predictor.proteasome_prediction(sequence, models_export_path, peptide_lenght_list)
+        peptide_list = predictor_fasta.proteasome_prediction(sequence, models_export_path, peptide_lenght_list)
     if score_set:
-        mhc_class = "II" #conditions of peptides, more can be added. Changing parameters in peptide_extractor
-        export_path = "data/score_set/class_II/class_II_data.csv"
+        mhc_class = "I" #conditions of peptides, more can be added. Changing parameters in peptide_extractor
+        export_path = "data/score_set/class_{}/class_{}_data.csv".format(mhc_class, mhc_class)
         iedb_data = peptide_extractor.extract_peptide_data(iedb_path, mhc_class)
         uniprot_data = uniprot_extractor.extract_uniprot_data(uniprot_path)
         proteasome_dictionary = peptide_uniprot_locator.locate_peptides(iedb_data, uniprot_data)
         scoring_data_generator.generating_scoring_data(proteasome_dictionary, export_path)
+        predictor_set.proteasome_prediction(export_path, models_export_path)
 
 if __name__ == "__main__":
     generate, train, predict_fasta, score_set = parse_args()
