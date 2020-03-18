@@ -50,7 +50,9 @@ def main(generate=False, train=False, predict_fasta=False, score_set=False):
     if score_set:
         mhc_class = "I" #conditions of peptides, more can be added. Changing parameters in peptide_extractor
         export_path = "data/score_set/class_{}/class_{}_data.csv".format(mhc_class, mhc_class)
-        iedb_data = peptide_extractor.extract_peptide_data(iedb_path, mhc_class)
+        #iedb_data = peptide_extractor.extract_peptide_data(iedb_path, mhc_class)
+        conditions_dictionary = {"Description": None, "Parent Protein IRI": None, "Method/Technique": ("contains", "mass spectrometry"), "MHC allele class": ("match", "I")}
+        iedb_data = peptide_extractor.extract_peptide_data_pandas(iedb_path, conditions_dictionary)
         uniprot_data = uniprot_extractor.extract_uniprot_data(uniprot_path)
         proteasome_dictionary = peptide_uniprot_locator.locate_peptides(iedb_data, uniprot_data)
         scoring_data_generator.generating_scoring_data(proteasome_dictionary, export_path)
