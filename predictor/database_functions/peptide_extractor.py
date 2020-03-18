@@ -1,34 +1,38 @@
 import pandas as pd
 
-def extract_peptide_data(input_file_path, mhc_class_type):
-    """
-    Extracts mass spectrometry positive binding peptides of all MHC-I alleles in IEDB
-    Returns a dictionary:
-        key = uniprot_id
-        values = a set of binding peptides
+def extract_peptide_data(input_file_path, conditions_dictionary):
+    """ Extracts mass spectrometry peptides in IEDB under conditions
+        Returns a dictionary with keys: uniprot_id, values: peptide_list
     """
     print("Extracting peptide data from IEDB...")
-    data = {}
-    with open(input_file_path, "r") as f:
-        next(f)
-        next(f)
-        for line in f:
-            line = line.rstrip().split('","')
-            peptide = line[11]
-            uniprot_id = line[18].split("/")[-1]
-            technique = line[79]
-            qualitative_value = line[83]
-            allele = line[95]
-            mhc_class = line[98]
-            if "mass spectrometry" in technique and "Positive" in qualitative_value and mhc_class == mhc_class_type and len(uniprot_id) > 1:
-                data.setdefault(uniprot_id, set()).add(peptide)
+    df = generate_df(input_file_path, conditions_dictionary)
+    print("Applying filtering conditions defined by the user...")
+    df_filtered = apply_conditions(df, conditions_dictionary)
+    print("Creating the dictionary...")
+    data = create_dictionary(df_filtered)
     return data
 
-def extract_peptide_data_pandas(input_file_path, conditions_dictionary):
-    print("Extracting peptide data from IEDB...")
+def generate_df(input_file_path, conditions_dictionary):
+    """ Only reads columns listed in dictionary keys (condition keys)
+        Drops rows contaning NaN in any condition column
+        Resets the index of the dataframe because of removing NaNs
+        Returns the dataframe
+    """
     df = pd.read_csv(input_file_path, header=1, usecols=list(conditions_dictionary.keys()))
     df = df.dropna()
     df = df.reset_index(drop=True)
+    return df
+
+def apply_conditions(df, conditions_dictionary):
+    """ Apply conditions reported in the dictionary of conditions
+        Keys represent the column names
+        Values the conditions to use:
+            None: obligatory arguments for the generation of the df only
+            Tuple:
+                First item: if condition must be found partially or must match entirely
+                Second item: filtering value
+        Returns filtered df by the conditions specified by the user
+    """
     for condition_type, condition_values in conditions_dictionary.items():
         if condition_values is not None:
             condition_search, condition_value = condition_values[0], condition_values[1]
@@ -36,6 +40,14 @@ def extract_peptide_data_pandas(input_file_path, conditions_dictionary):
                 df = df[df[condition_type].str.contains(condition_value, regex=False)]
             if condition_search == "match":
                 df = df[df[condition_type] == condition_value]
+    return df
+
+def create_dictionary(df):
+    """ Reduces the df to the minimum needed information: peptide sequence and uniprot entry
+        Removes duplicates but keep one: same peptide can be repeated by another different MS study (different category)
+        Convert the uniprot link https into uniprot code by getting last string after last "/"
+        Generates a dictionary where keys are uniprot codes and values a list of non-repeated peptides for that uniprot code
+    """
     exporting_df = df[["Description", "Parent Protein IRI"]]
     exporting_df = exporting_df.drop_duplicates(keep="first")
     exporting_df["Parent Protein IRI"] = exporting_df["Parent Protein IRI"].str.split("/").str[-1]
