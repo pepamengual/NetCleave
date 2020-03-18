@@ -7,7 +7,7 @@ from predictor.new_predictions import predictor_fasta, predictor_set
 HELP = " \
 Command:\n \
 ----------\n \
-Run: python3 PROcleave.py --generate_data --NN\
+Run: python3 PROcleave.py --predict_fasta\
 "
 
 
@@ -23,7 +23,8 @@ def parse_args():
 def generating_data(iedb_path, uniprot_path, conditions):
     iedb_data = peptide_extractor.extract_peptide_data(iedb_path, conditions)
     uniprot_data = uniprot_extractor.extract_uniprot_data(uniprot_path)
-    proteasome_dictionary = peptide_uniprot_locator.locate_peptides(iedb_data, uniprot_data)
+    proteasome_dictionary, mutation_dictionary = peptide_uniprot_locator.locate_peptides(iedb_data, uniprot_data)
+    print(mutation_dictionary)
     return proteasome_dictionary
 
 def main(generate=False, train=False, predict_fasta=False, score_set=False):
@@ -51,7 +52,7 @@ def main(generate=False, train=False, predict_fasta=False, score_set=False):
     
     if score_set:
         conditions = {"Description": None, "Parent Protein IRI": None, 
-                      "Method/Technique": ("contains", "mass spectrometry"), "MHC allele class": ("match", "II")}
+                      "Method/Technique": ("contains", "mass spectrometry"), "MHC allele class": ("match", "I")}
         export_set_path = "data/score_set/class_{0}/class_{0}_data.csv".format(conditions["MHC allele class"][1])
         proteasome_dictionary = generating_data(iedb_path, uniprot_path, conditions)
         scoring_data_generator.generating_scoring_data(proteasome_dictionary, export_set_path)

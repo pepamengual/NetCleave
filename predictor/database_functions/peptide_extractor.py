@@ -14,11 +14,13 @@ def extract_peptide_data(input_file_path, conditions_dictionary):
 
 def generate_df(input_file_path, conditions_dictionary):
     """ Only reads columns listed in dictionary keys (condition keys)
+        Gets the first sequence separated by space in peptide list. Modificated peptides are weirdly anonated: peptide + modification
         Drops rows contaning NaN in any condition column
         Resets the index of the dataframe because of removing NaNs
         Returns the dataframe
     """
     df = pd.read_csv(input_file_path, header=1, usecols=list(conditions_dictionary.keys()))
+    df["Description"] = df["Description"].str.split().str[0]
     df = df.dropna()
     df = df.reset_index(drop=True)
     return df
