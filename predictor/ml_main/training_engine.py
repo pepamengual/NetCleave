@@ -39,7 +39,7 @@ def padding_sequences(encoding_table, max_lenght):
     padding_table = pad_sequences(encoding_table, maxlen=max_lenght, padding='post', truncating='post')
     return padding_table
 
-def reshaping_sequences(one_hot_table, sequence_table, max_lenght):
+def reshaping_sequences(one_hot_table, sequence_table, max_lenght, column_name):
     train_ohe = one_hot_table.reshape(sequence_table.shape[0], 1, max_lenght*20)
     train_ohe = train_ohe.astype(int)
     train_ohe = train_ohe.tolist()
@@ -47,12 +47,8 @@ def reshaping_sequences(one_hot_table, sequence_table, max_lenght):
     for i in train_ohe:
         for j in i:
             train_ohe_list.append(j)
-    one_hot_df = pd.DataFrame(train_ohe_list, columns=["P{}".format(i) for i in range(max_lenght*20)])
+    one_hot_df = pd.DataFrame(train_ohe_list, columns=["{}{}".format(column_name, i) for i in range(max_lenght*20)])
     return one_hot_df
-
-def labeling_data(one_hot_df, class_table):
-    labeled_df = pd.concat([one_hot_df, class_table], axis=1)
-    return labeled_df
 
 def splitting_data(labeled_df):
     data_train, data_val, class_labels_train, class_labels_val = train_test_split(labeled_df.drop(['class'], axis=1), labeled_df['class'],
@@ -125,16 +121,22 @@ def create_models(training_data_path, models_export_path):
     max_lenght, b_size = 7, 128
     amino_acids = ["A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y"]
     resume_prediction = {}
-
+    
     for amino_acid in amino_acids:
         training_table, sequence_table, class_table = read_table(training_data_path, amino_acid)
+
+        """ Encoding sequence into vectors of amino acids
+        """
         encoding_table = integer_encoding(sequence_table)
         padding_table = padding_sequences(encoding_table, max_lenght)
         one_hot_table = to_categorical(padding_table, num_classes=20)
-        one_hot_df = reshaping_sequences(one_hot_table, sequence_table, max_lenght)
-        labeled_df = labeling_data(one_hot_df, class_table)
-        data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test = splitting_data(labeled_df)
+        one_hot_df = reshaping_sequences(one_hot_table, sequence_table, max_lenght, column_name="P")
+        
 
+        
+        labeled_df = pd.concat([one_hot_df, class_table], axis=1)
+        data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test = splitting_data(labeled_df)
+        
         neurons = len(list(labeled_df.drop(['class'], axis=1)))
         model = Sequential()
         model.add(Dense(int(neurons), input_dim=neurons, activation='relu', kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.001)))
@@ -143,8 +145,10 @@ def create_models(training_data_path, models_export_path):
         model.add(Dense(1, activation='sigmoid'))
         model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', matthews_correlation, precision, recall, tf.keras.metrics.AUC()])
         
-        es = EarlyStopping(monitor='val_matthews_correlation', mode='max', patience=5, verbose=1)
-        history = model.fit(data_train, class_labels_train, epochs=1000, batch_size=b_size, validation_data=(data_val, class_labels_val), callbacks=[es], verbose=1)
+        #es = EarlyStopping(monitor='val_matthews_correlation', mode='max', patience=5, verbose=1)
+        #es = EarlyStopping(monitor='val_auc', mode='max', patience=2, verbose=1)
+        es = EarlyStopping(monitor='val_loss', mode='min', patience=5, verbose=1)
+        history = model.fit(data_train, class_labels_train, epochs=100, batch_size=b_size, validation_data=(data_val, class_labels_val), callbacks=[es], verbose=1)
         
         Path(models_export_path).mkdir(parents=True, exist_ok=True)
         model.save_weights("{}/proteasome_{}_model.h5".format(models_export_path, amino_acid))
@@ -159,5 +163,5 @@ def create_models(training_data_path, models_export_path):
         resume_prediction.setdefault(amino_acid, {}).setdefault("Test", test_dict)
 
     resume_df = pd.DataFrame.from_dict({(i,j): resume_prediction[i][j] for i in resume_prediction.keys() for j in resume_prediction[i].keys()}, orient='index')
-    resume_df.to_csv("models_accurary_OHE.csv")
+    resume_df.to_csv("models_accurary_OHE_val_loss_only_sequence.csv")
 
