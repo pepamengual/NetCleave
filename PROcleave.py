@@ -2,7 +2,7 @@ import argparse
 from predictor.database_functions import peptide_extractor, uniprot_extractor
 from predictor.core import peptide_uniprot_locator, training_data_generator, scoring_data_generator
 from predictor.ml_main import training_engine
-from predictor.new_predictions import predictor_fasta, predictor_set
+from predictor.new_predictions import predictor_fasta, predictor_set, predictor_linker
 
 HELP = " \
 Command:\n \
@@ -46,10 +46,28 @@ def main(generate=False, train=False, predict_fasta=False, score_set=False):
         training_engine.create_models(training_data_path, models_export_path)
     
     if predict_fasta:
-        sequence = "LVVSFVVGGLAPKLEDIDLE"
-        peptide_lenght_list = [8, 9, 10]
-        peptide_list = predictor_fasta.proteasome_prediction(sequence, models_export_path, peptide_lenght_list)
-    
+        peptide = "SIINFEKL"
+        linker_list = ["AAA", "AAL", "AAY", "ADL", "A", "GGGS", "SSS"]
+        linker_data = {}
+        for linker in linker_list:
+            sequence = "{0}{1}{0}{1}{0}{1}".format(peptide, linker)
+            print("Peptide: {}\nLinker: {}\nSequence: {}\n".format(peptide, linker, sequence))
+            peptide_lenght_list = [len(peptide)]
+            peptide_list, possible_cleavages = predictor_linker.proteasome_prediction(sequence, models_export_path, peptide_lenght_list, peptide, linker)
+            #peptide_list = predictor_fasta.proteasome_prediction(sequence, models_export_path, peptide_lenght_list, peptide)
+            #for data in sorted(list(peptide_list), key=lambda x: x[1], reverse=True):
+            #    print(data[0], data[1])
+            for data in possible_cleavages:
+                position = data[0]
+                probability = data[1]
+                linker_data.setdefault(linker, {}).setdefault(position, probability)
+        print(linker_data)
+        
+        for linker, linker_dict in linker_data.items():
+            cleavage = linker_dict[7]
+            ### sum linker_dict, substract cleavage, probability of cleavage??
+
+
     if score_set:
         conditions = {"Description": None, "Parent Protein IRI": None, 
                       "Method/Technique": ("contains", "mass spectrometry"), "MHC allele class": ("match", "I")}

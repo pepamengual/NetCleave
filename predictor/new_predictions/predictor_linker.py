@@ -77,9 +77,9 @@ def slicing_through_sequence(sequence):
             candidate_dictionary.setdefault(amino_acid, {}).setdefault("positions", []).append(position)
     return candidate_dictionary
 
-def peptides_cleaved_by_proteasome(sequence, all_proteasome_predictions, min_peptide_lenght_list, data_probabilities):
+def peptides_cleaved_by_proteasome(sequence, all_proteasome_predictions, min_peptide_lenght_list, data_probabilities, peptide, linker):
     list_of_peptides_cleaved_by_proteasome = []
-    print([(i,round(j,4)) for i, j in sorted(data_probabilities.items())])
+    possible_cleavages = [(i,round(j,4)) for i, j in sorted(data_probabilities.items()) if i <= len(peptide)+len(linker)+2]
     for amino_acid, list_of_proteasome_cleavage in sorted(all_proteasome_predictions.items()):
         for position in list_of_proteasome_cleavage:
             list_of_proteasome_chunks = [i for i in list_of_proteasome_cleavage if i < position]
@@ -88,7 +88,7 @@ def peptides_cleaved_by_proteasome(sequence, all_proteasome_predictions, min_pep
                 if len(proteasome_chunk) >= min_peptide_lenght_list: #edit here if needed
                     probability = round(data_probabilities[position], 4)
                     list_of_peptides_cleaved_by_proteasome.append((proteasome_chunk, probability))
-    return list_of_peptides_cleaved_by_proteasome
+    return list_of_peptides_cleaved_by_proteasome, possible_cleavages
 
 def hypothetical_peptides(sequence, list_of_peptides_cleaved_by_proteasome, peptide_lenght_list):
     print("\nSummary report\n")
@@ -108,7 +108,7 @@ def hypothetical_peptides(sequence, list_of_peptides_cleaved_by_proteasome, pept
     print(peptide_set)
     return peptide_set
 
-def proteasome_prediction(sequence, models_export_path, peptide_lenght_list):
+def proteasome_prediction(sequence, models_export_path, peptide_lenght_list, peptide, linker):
     max_lenght = 6 # change this to 7 if consider using same residue in the middle
     candidate_dictionary = slicing_through_sequence(sequence) #slice
     all_proteasome_predictions = {}
@@ -140,6 +140,6 @@ def proteasome_prediction(sequence, models_export_path, peptide_lenght_list):
         all_proteasome_predictions.setdefault(amino_acid, list_of_proteasome_cleavage)
         all_proteasome_predictions_scores.update(data_probabilities)       
     
-    list_of_peptides_cleaved_by_proteasome = peptides_cleaved_by_proteasome(sequence, all_proteasome_predictions, min(peptide_lenght_list), all_proteasome_predictions_scores)
+    list_of_peptides_cleaved_by_proteasome, possible_cleavages = peptides_cleaved_by_proteasome(sequence, all_proteasome_predictions, min(peptide_lenght_list), all_proteasome_predictions_scores, peptide, linker)
     peptide_list = hypothetical_peptides(sequence, list_of_peptides_cleaved_by_proteasome, peptide_lenght_list)
-    return peptide_list
+    return peptide_list, possible_cleavages

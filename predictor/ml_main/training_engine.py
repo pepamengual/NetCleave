@@ -30,8 +30,9 @@ def integer_encoding(data):
     encode_list = []
     for row in data['sequence'].values:
         row_encode = []
-        for code in row:
-            row_encode.append(char_dict.get(code))
+        for i, code in enumerate(row):
+            if i != 3: ### FOR REMOVING MIDDLE AMINO ACID ONLY
+                row_encode.append(char_dict.get(code))
         encode_list.append(np.array(row_encode))
     return encode_list
 
@@ -118,7 +119,7 @@ def compile_stats(train_score, data_train, val_score, data_val, test_score, data
     return train_dict, val_dict, test_dict
 
 def create_models(training_data_path, models_export_path):
-    max_lenght, b_size = 7, 128
+    max_lenght, b_size = 6, 128 ### MAX LENGHT TO 7 FOR ALL
     amino_acids = ["A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y"]
     resume_prediction = {}
     
@@ -163,5 +164,5 @@ def create_models(training_data_path, models_export_path):
         resume_prediction.setdefault(amino_acid, {}).setdefault("Test", test_dict)
 
     resume_df = pd.DataFrame.from_dict({(i,j): resume_prediction[i][j] for i in resume_prediction.keys() for j in resume_prediction[i].keys()}, orient='index')
-    resume_df.to_csv("models_accurary_OHE_val_loss_only_sequence.csv")
+    resume_df.to_csv("models_accurary_OHE_val_loss_only_sequence_no_middle.csv")
 
