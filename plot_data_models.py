@@ -22,7 +22,7 @@ def plot_pivot_df(pivot_df, value, ylabel, input_path):
     plt.savefig("images/{}_{}.png".format(input_path.split(".csv")[0], value), dpi=300, bbox_inches="tight")
 
 def main():
-    input_path = "models_accurary_OHE_val_loss_only_sequence.csv"
+    input_path = "models_class_I_MS.csv"
     df = read_csv(input_path)
     value, ylabel = "loss", "Loss"
     value, ylabel = "auc", "Area under the curve (AUC)"

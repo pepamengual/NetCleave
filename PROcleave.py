@@ -37,14 +37,25 @@ def main(generate=False, train=False, predict_fasta=False, score_set=False):
         print("Please, provide an argument. See python3 PROcleave.py -h for more information")
     
     if generate:
-        conditions = {"Description": None, "Parent Protein IRI": None, 
-                      "Method/Technique": ("contains", "mass spectrometry"), "MHC allele class": ("match", "I")}
+        virus_and_bacteria = []
+        with open("../PROcleave_data/virus_and_bacteria.txt", "r") as f:
+            for line in f:
+                line = line.rstrip().split(",")
+                virus_and_bacteria.append(line[0])
+
+        conditions = {"Description": ("not_contains", "SIINFEKL"), "Parent Protein IRI": None, 
+                      #"Method/Technique": ("contains", "mass spectrometry"), 
+                      "MHC allele class": ("match", "I")}
+                      #"Allele Name": ()},
+                      #"Parent Species": ("is_in", virus_and_bacteria)}
+                      #"Name": ("contains", "Homo sapiens"), # host
+                      #"Parent Species": ("not_contains", "Homo sapiens")} # other epitope different than human
         proteasome_dictionary = generating_data(iedb_path, uniprot_path, conditions)
         training_data_generator.prepare_cleavage_data(proteasome_dictionary, training_data_path)
 
     if train:
         training_engine.create_models(training_data_path, models_export_path)
-    
+
     if predict_fasta:
         peptide = "SIINFEKL"
         linker_list = ["AAA", "AAL", "AAY", "ADL", "A", "GGGS", "SSS"]
@@ -54,9 +65,6 @@ def main(generate=False, train=False, predict_fasta=False, score_set=False):
             print("Peptide: {}\nLinker: {}\nSequence: {}\n".format(peptide, linker, sequence))
             peptide_lenght_list = [len(peptide)]
             peptide_list, possible_cleavages = predictor_linker.proteasome_prediction(sequence, models_export_path, peptide_lenght_list, peptide, linker)
-            #peptide_list = predictor_fasta.proteasome_prediction(sequence, models_export_path, peptide_lenght_list, peptide)
-            #for data in sorted(list(peptide_list), key=lambda x: x[1], reverse=True):
-            #    print(data[0], data[1])
             for data in possible_cleavages:
                 position = data[0]
                 probability = data[1]
@@ -64,13 +72,23 @@ def main(generate=False, train=False, predict_fasta=False, score_set=False):
         print(linker_data)
         
         for linker, linker_dict in linker_data.items():
+            sum_probabilities = sum(linker_dict.values())
+            num_probabilities = len(linker_dict)
             cleavage = linker_dict[7]
-            ### sum linker_dict, substract cleavage, probability of cleavage??
+            prob = (cleavage/(sum_probabilities))/num_probabilities
+            print(linker, cleavage, round(prob, 5))
+        
+        for linker, linker_dict in linker_data.items():
+            cleavage = linker_dict[7]
+            n1 = linker_dict[6] + linker_dict[8] + cleavage
+            prob = (cleavage/n1)*100
+            print(linker, prob)
 
 
     if score_set:
         conditions = {"Description": None, "Parent Protein IRI": None, 
-                      "Method/Technique": ("contains", "mass spectrometry"), "MHC allele class": ("match", "I")}
+                      "Method/Technique": ("contains", "mass spectrometry"), "MHC allele class": ("match", "I"),
+                      "Parent Species": ("not_match", "Homo sapiens")}
         export_set_path = "data/score_set/class_{0}/class_{0}_data.csv".format(conditions["MHC allele class"][1])
         proteasome_dictionary = generating_data(iedb_path, uniprot_path, conditions)
         scoring_data_generator.generating_scoring_data(proteasome_dictionary, export_set_path)

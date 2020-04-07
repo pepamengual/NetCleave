@@ -37,13 +37,14 @@ def integer_encoding(data):
     encode_list = []
     for row in data['sequence'].values:
         row_encode = []
-        for code in row:
-            row_encode.append(char_dict.get(code))
+        for i, code in enumerate(row):
+            if i != 3: ### FOR REMOVING MIDDLE AMINO ACID ONLY
+                row_encode.append(char_dict.get(code))
         encode_list.append(np.array(row_encode))
     return encode_list
 
 def load_model(model_file):
-    neurons = 140
+    neurons = 120 #changed to remove middle
     model = Sequential()
     model.add(Dense(int(neurons), input_dim=neurons, activation='relu', kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.001)))
     model.add(Dense(int(neurons/3), activation='relu', kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.001)))
@@ -56,7 +57,7 @@ def load_model(model_file):
 def encode_candidates(list_of_candidates):
     encode_df = pd.DataFrame({"sequence": list_of_candidates})
     encoding_table = integer_encoding(encode_df)
-    max_length = 7
+    max_length = 6 #changed to remove middle
     padding_table = pad_sequences(encoding_table, maxlen=max_length, padding='post', truncating='post')
     one_hot_table = to_categorical(padding_table, num_classes=20)
     train_ohe = one_hot_table.reshape(encode_df.shape[0], 1, max_length*20)

@@ -40,8 +40,15 @@ def apply_conditions(df, conditions_dictionary):
             condition_search, condition_value = condition_values[0], condition_values[1]
             if condition_search == "contains":
                 df = df[df[condition_type].str.contains(condition_value, regex=False)]
+            if condition_search == "not_contains":
+                df = df[df[condition_type].str.contains(condition_value, regex=False)==False]
             if condition_search == "match":
                 df = df[df[condition_type] == condition_value]
+            if condition_search == "not_match":
+                df = df[df[condition_type] != condition_value]
+            if condition_search == "is_in":
+                df = df[df[condition_type].isin(condition_value)]
+    print(df)
     return df
 
 def create_dictionary(df):
