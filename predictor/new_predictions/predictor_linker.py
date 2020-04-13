@@ -125,7 +125,7 @@ def proteasome_prediction(sequence, models_export_path, peptide_lenght_list, pep
         position_df = pd.DataFrame({"position": list_of_positions}) #a dataframe of the cleavage position (+1) of the predicted sequences
         prediction_df = pd.DataFrame(prediction, columns=["prediction"]) #a dataframe of the predicted cleavages (0 no cleavage, 1 cleavage)
         proteasome_df = pd.concat([candidate_df, position_df, prediction_df], axis=1) #concatenate the above dataframes into a single one
-        #print(proteasome_df)
+        print(proteasome_df)
         proteasome_cleavage_regions = proteasome_df.loc[proteasome_df["prediction"] >= 0.5] #select rows with positive proteasome predicted cleavage
         #print(proteasome_cleavage_regions)
         list_of_proteasome_cleavage = proteasome_cleavage_regions["position"].tolist() #a list of the positions of the sequence that are predicted to be cleaved by the proteosome

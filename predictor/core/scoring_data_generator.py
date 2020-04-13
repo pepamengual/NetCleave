@@ -7,16 +7,18 @@ def generating_scoring_data(proteasome_dictionary, export_path):
             3 after last residue of peptide
     """
     export_data = {}
+    a = 0
     for residue, proteasome_peptides in proteasome_dictionary.items():
         for proteasome_peptide in proteasome_peptides:
             peptide = proteasome_peptide[:-4]
             prediction_region = proteasome_peptide[-8:-1]
-            export_data.setdefault(residue, {}).setdefault(peptide, prediction_region)
+            export_data.setdefault(residue, {}).setdefault(peptide, []).append(prediction_region)
     export_file(export_data, export_path)
 
 def export_file(export_data, export_path):
     with open(export_path, "w") as f:
         f.write("residue\tpeptide\tprediction_region\n")
         for residue, peptide_dict in export_data.items():
-            for peptide, prediction_region in peptide_dict.items():
-                f.write("{}\t{}\t{}\n".format(residue, peptide, prediction_region))
+            for peptide, prediction_region_list in peptide_dict.items():
+                for prediction_region in prediction_region_list:
+                    f.write("{}\t{}\t{}\n".format(residue, peptide, prediction_region))

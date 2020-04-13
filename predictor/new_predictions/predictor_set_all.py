@@ -38,8 +38,7 @@ def integer_encoding(data):
     for row in data['sequence'].values:
         row_encode = []
         for i, code in enumerate(row):
-            if i != 3: ### FOR REMOVING MIDDLE AMINO ACID ONLY
-                row_encode.append(char_dict.get(code))
+            row_encode.append(char_dict.get(code))
         encode_list.append(np.array(row_encode))
     return encode_list
 
@@ -70,13 +69,13 @@ def encode_candidates(list_of_candidates, max_lenght):
     return one_hot_df
 
 def proteasome_prediction(score_set_path, models_path, cell_type, name):
-    max_lenght = 6
+    max_lenght = 7
     score_set_df = pd.read_csv(score_set_path, sep="\t")
     score_list = []
     score_dict = {}
+    proteasome_file = "{}/proteasome_all_models.h5".format(models_path)
+    proteasome_model = load_model(proteasome_file, max_lenght)
     for amino_acid in sorted(set(score_set_df["residue"])):
-        proteasome_file = "{}/proteasome_{}_model.h5".format(models_path, amino_acid)
-        proteasome_model = load_model(proteasome_file, max_lenght)
         score_set_df_amino_acid = score_set_df.loc[score_set_df["residue"] == amino_acid]
         list_of_candidates = list(score_set_df_amino_acid["prediction_region"])
         list_of_peptides = list(score_set_df_amino_acid["peptide"])

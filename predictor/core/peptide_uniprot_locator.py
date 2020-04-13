@@ -12,15 +12,17 @@ def locate_peptides(ms_data, uniprot_data):
     data_dict, mutation_dict = {}, {}
     for uniprot_id, peptide_set in ms_data.items():
         if uniprot_id in uniprot_data:
+            peptide_set = [peptide[-5:] for peptide in peptide_set] #remove duplicated C-term cleavage per uniprot ID
+            peptide_set = set(peptide_set)
             for peptide in peptide_set:
                 if peptide in uniprot_data[uniprot_id]:
                     last_peptide_residue, large_peptide = get_neighbour_sequence(uniprot_data, uniprot_id, peptide, adjacent_lenght, amino_acids_possible_set, 0)
                     if last_peptide_residue != None and large_peptide != None:
                         data_dict.setdefault(last_peptide_residue, []).append(large_peptide)
-                else:
-                    last_peptide_residue, large_peptide = find_single_mutations_in_c_terminal(peptide, uniprot_data, uniprot_id, adjacent_lenght, amino_acids_possible_set)
-                    if last_peptide_residue != None and large_peptide != None:
-                        mutation_dict.setdefault(uniprot_id, []).append((peptide, large_peptide))
+               # else:
+               #     last_peptide_residue, large_peptide = find_single_mutations_in_c_terminal(peptide, uniprot_data, uniprot_id, adjacent_lenght, amino_acids_possible_set)
+               #     if last_peptide_residue != None and large_peptide != None:
+               #         mutation_dict.setdefault(uniprot_id, []).append((peptide, large_peptide))
     return data_dict, mutation_dict
 
 def find_single_mutations_in_c_terminal(peptide, uniprot_data, uniprot_id, adjacent_lenght, amino_acids_possible_set):
