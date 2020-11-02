@@ -76,69 +76,70 @@ def slicing_through_sequence(sequence):
             candidate_dictionary.setdefault(amino_acid, {}).setdefault("positions", []).append(position)
     return candidate_dictionary
 
-def peptides_cleaved_by_proteasome(sequence, all_proteasome_predictions, min_peptide_lenght_list, data_probabilities, peptide, linker):
-    list_of_peptides_cleaved_by_proteasome = []
+def peptides_cleaved_by_processing(sequence, all_processing_predictions, min_peptide_lenght_list, data_probabilities, peptide, linker):
+    list_of_peptides_cleaved_by_processing = []
     possible_cleavages = [(i,round(j,4)) for i, j in sorted(data_probabilities.items()) if i <= len(peptide)+len(linker)+2]
-    for amino_acid, list_of_proteasome_cleavage in sorted(all_proteasome_predictions.items()):
-        for position in list_of_proteasome_cleavage:
-            list_of_proteasome_chunks = [i for i in list_of_proteasome_cleavage if i < position]
-            for cleavage_possibility in list_of_proteasome_chunks:
-                proteasome_chunk = sequence[cleavage_possibility : position + 1]
-                if len(proteasome_chunk) >= min_peptide_lenght_list: #edit here if needed
+    for amino_acid, list_of_processing_cleavage in sorted(all_processing_predictions.items()):
+        for position in list_of_processing_cleavage:
+            list_of_processing_chunks = [i for i in list_of_processing_cleavage if i < position]
+            for cleavage_possibility in list_of_processing_chunks:
+                processing_chunk = sequence[cleavage_possibility : position + 1]
+                if len(processing_chunk) >= min_peptide_lenght_list: #edit here if needed
                     probability = round(data_probabilities[position], 4)
-                    list_of_peptides_cleaved_by_proteasome.append((proteasome_chunk, probability))
-    return list_of_peptides_cleaved_by_proteasome, possible_cleavages
+                    list_of_peptides_cleaved_by_processing.append((processing_chunk, probability))
+                    print(processing_chunk, probability)
+    return list_of_peptides_cleaved_by_processing, possible_cleavages
 
-def hypothetical_peptides(sequence, list_of_peptides_cleaved_by_proteasome, peptide_lenght_list):
+def hypothetical_peptides(sequence, list_of_peptides_cleaved_by_processing, peptide_lenght_list):
     print("\nSummary report\n")
     possible_peptides = 0
     for lenght in peptide_lenght_list:
         possible_peptides += (len(sequence)-lenght+1)
     print("Possible peptides of lenght {} in your sequence ({} amino acids): {}".format(peptide_lenght_list, len(sequence), possible_peptides))
     peptide_set = set()
-    for tuple_info in list_of_peptides_cleaved_by_proteasome:
+    for tuple_info in list_of_peptides_cleaved_by_processing:
         peptide = tuple_info[0]
         probability = tuple_info[1]
         for lenght in peptide_lenght_list:
             peptide_chosen = peptide[-lenght:]
             peptide_set.add((peptide_chosen, probability))
     #peptide_list = sorted(list(peptide_set))
-    print("Predicted proteasome peptides of lenght {}: {}\n".format(peptide_lenght_list, len(peptide_set)))
+    print("Predicted processing peptides of lenght {}: {}\n".format(peptide_lenght_list, len(peptide_set)))
     print(peptide_set)
     return peptide_set
 
-def proteasome_prediction(sequence, models_export_path, peptide_lenght_list, peptide, linker):
+def processing_prediction(sequence, models_export_path, peptide_lenght_list, peptide, linker):
     max_lenght = 7 # change this to 7 if consider using same residue in the middle
     candidate_dictionary = slicing_through_sequence(sequence) #slice
-    all_proteasome_predictions = {}
-    all_proteasome_predictions_scores = {}
-    proteasome_file = "{}/proteasome_all_models.h5".format(models_export_path)
-    proteasome_model = load_model(proteasome_file, max_lenght)
+    all_processing_predictions = {}
+    all_processing_predictions_scores = {}
+    processing_file = "{}/{}_model.h5".format(models_export_path, models_export_path.split("/")[-1])
+    processing_model = load_model(processing_file, max_lenght)
     for amino_acid, candidate_position_dictionary in candidate_dictionary.items():
         list_of_candidates = candidate_position_dictionary["candidates"]
         list_of_positions = candidate_position_dictionary["positions"]
         one_hot_df = encode_candidates(list_of_candidates, max_lenght) #one hot encode candidates
-        #prediction = proteasome_model.predict_classes(one_hot_df) #make prediction of candidates (0 no cleavage, 1 cleavage)
-        prediction = proteasome_model.predict(one_hot_df)
+        #prediction = processing_model.predict_classes(one_hot_df) #make prediction of candidates (0 no cleavage, 1 cleavage)
+        prediction = processing_model.predict(one_hot_df)
         candidate_df = pd.DataFrame({"sequence": list_of_candidates}) #a dataframe of the predicted sequences
         position_df = pd.DataFrame({"position": list_of_positions}) #a dataframe of the cleavage position (+1) of the predicted sequences
         prediction_df = pd.DataFrame(prediction, columns=["prediction"]) #a dataframe of the predicted cleavages (0 no cleavage, 1 cleavage)
-        proteasome_df = pd.concat([candidate_df, position_df, prediction_df], axis=1) #concatenate the above dataframes into a single one
-        #print(proteasome_df)
-        proteasome_cleavage_regions = proteasome_df.loc[proteasome_df["prediction"] >= 0.5] #select rows with positive proteasome predicted cleavage
-        #print(proteasome_cleavage_regions)
-        list_of_proteasome_cleavage = proteasome_cleavage_regions["position"].tolist() #a list of the positions of the sequence that are predicted to be cleaved by the proteosome
-        list_of_proteasome_cleavage_probabilities = proteasome_cleavage_regions["prediction"].tolist()
+        processing_df = pd.concat([candidate_df, position_df, prediction_df], axis=1) #concatenate the above dataframes into a single one
+        print(processing_df)
+        processing_cleavage_regions = processing_df.loc[processing_df["prediction"] >= 0.5] #select rows with positive processing predicted cleavage
+        #print(processing_cleavage_regions)
+        list_of_processing_cleavage = processing_cleavage_regions["position"].tolist() #a list of the positions of the sequence that are predicted to be cleaved by the proteosome
+        list_of_processing_cleavage_probabilities = processing_cleavage_regions["prediction"].tolist()
         data_probabilities = {}
-        for i, pos in enumerate(proteasome_df["position"].tolist()):
-            prob = proteasome_df["prediction"].tolist()[i]
+        for i, pos in enumerate(processing_df["position"].tolist()):
+            prob = processing_df["prediction"].tolist()[i]
             data_probabilities.setdefault(pos, prob)
 
-        #list_of_proteasome_cleavage.extend([0, len(sequence) - 1]) #add initial position and last position of the sequence
-        list_of_proteasome_cleavage.sort()
-        all_proteasome_predictions.setdefault(amino_acid, list_of_proteasome_cleavage)
-        all_proteasome_predictions_scores.update(data_probabilities)       
+        #list_of_processing_cleavage.extend([0, len(sequence) - 1]) #add initial position and last position of the sequence
+        list_of_processing_cleavage.sort()
+        all_processing_predictions.setdefault(amino_acid, list_of_processing_cleavage)
+        all_processing_predictions_scores.update(data_probabilities)       
     
-    list_of_peptides_cleaved_by_proteasome, possible_cleavages = peptides_cleaved_by_proteasome(sequence, all_proteasome_predictions, min(peptide_lenght_list), all_proteasome_predictions_scores, peptide, linker)
-    peptide_list = hypothetical_peptides(sequence, list_of_peptides_cleaved_by_proteasome, peptide_lenght_list)
+    list_of_peptides_cleaved_by_processing, possible_cleavages = peptides_cleaved_by_processing(sequence, all_processing_predictions, min(peptide_lenght_list), all_processing_predictions_scores, peptide, linker)
+    peptide_list = hypothetical_peptides(sequence, list_of_peptides_cleaved_by_processing, peptide_lenght_list)
     return peptide_list, possible_cleavages

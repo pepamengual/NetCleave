@@ -2,7 +2,7 @@ import argparse
 from predictor.database_functions import peptide_extractor, uniprot_extractor, uniparc_extractor
 from predictor.core import all_peptide_uniprot_locator, all_training_data_generator
 from predictor.ml_main import all_training_engine
-from predictor.new_predictions import predictor_fasta, predictor_set
+from predictor.new_predictions import all_predictor_fasta, predictor_set, predictor_linker_all
 
 HELP = " \
 Command:\n \
@@ -41,7 +41,8 @@ def main(generate=False, train=False, predict_fasta=False, score_set=False):
     
     if generate:
         conditions = {"Description": None, "Parent Protein IRI": None, 
-                      "Method/Technique": ("contains", technique), 
+                      "Method/Technique": ("contains", technique),
+                      "Description": ("not_contains", "SIINFEKL"),
                       "MHC allele class": ("match", mhc_class)}
                       #"Name": ("contains", "Homo sapiens")}
                       #"Cell Type": ("match", "B cell")}
@@ -54,6 +55,28 @@ def main(generate=False, train=False, predict_fasta=False, score_set=False):
 
     if train:
         all_training_engine.create_models(training_data_path, models_export_path)
+    
+    if predict_fasta:
+        results = {}
+        peptide = "SIINFEKL"
+        linker_list = ["AAA", "AAL", "AAY", "ADL", "A", "GGGS", "SSS"]
+        linker_data = {}
+        for linker in linker_list:
+            sequence = "{0}{1}{0}".format(peptide, linker)
+            print("Peptide: {}\nLinker: {}\nSequence: {}\n".format(peptide, linker, sequence))
+            peptide_lenght_list = [len(peptide)]
+            peptide_list, possible_cleavages = predictor_linker_all.processing_prediction(sequence, models_export_path, peptide_lenght_list, peptide, linker)
+            for data in possible_cleavages:
+                position = data[0]
+                probability = data[1]
+                linker_data.setdefault(linker, {}).setdefault(position, probability)
+        print(linker_data)
+
+        for linker in linker_data.keys():
+            neighbours = linker_data[linker][5] + linker_data[linker][6] + linker_data[linker][7] + linker_data[linker][8] + linker_data[linker][9] 
+            results.setdefault(linker, round(linker_data[linker][8]/neighbours, 3))
+        for k, v in results.items():
+            print(k, v)
 
     if score_set:
         conditions = {"Description": None, "Parent Protein IRI": None, 
