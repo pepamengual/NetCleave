@@ -11,12 +11,11 @@ import tensorflow as tf
 from keras import regularizers
 from keras import backend as K
 
-def read_table(training_data_path, amino_acids):
+def read_table(training_data_path):
     df_list = []
-    for amino_acid in amino_acids:
-        training_data_file = "{}/{}_{}_sequence_class.txt".format(training_data_path, training_data_path.split("/")[-1], amino_acid)
-        df = pd.read_csv(training_data_file, sep="\t", index_col=None, header=0)
-        df_list.append(df)
+    training_data_file = "{}/{}_sequence_class.txt".format(training_data_path, training_data_path.split("/")[-1])
+    df = pd.read_csv(training_data_file, sep="\t", index_col=None, header=0)
+    df_list.append(df)
     training_table = pd.concat(df_list, axis=0, ignore_index=True)
     sequence_table = training_table.drop(['class'], axis=1)
     class_table = training_table['class']
@@ -35,18 +34,12 @@ def integer_encoding(data):
     for row in data['sequence'].values:
         row_encode = []
         for i, code in enumerate(row):
-            if i != 3: ### FOR REMOVING MIDDLE AMINO ACID ONLY
-                row_encode.append(char_dict.get(code))
+            row_encode.append(char_dict.get(code))
         encode_list.append(np.array(row_encode))
     return encode_list
 
-def padding_sequences(encoding_table):
-    a = {}
-    for i in encoding_table:
-        a.setdefault(type(i), 0)
-        a[type(i)] += 1
-    print(a)
-    padding_table = pad_sequences(encoding_table, maxlen=6, dtype='int32', padding='post', truncating='post')
+def padding_sequences(encoding_table, max_lenght):
+    padding_table = pad_sequences(encoding_table, maxlen=max_lenght, dtype='int32', padding='post', truncating='post')
     return padding_table
 
 def reshaping_sequences(one_hot_table, sequence_table, max_lenght, column_name):
@@ -128,48 +121,47 @@ def compile_stats(train_score, data_train, val_score, data_val, test_score, data
     return train_dict, val_dict, test_dict
 
 def create_models(training_data_path, models_export_path):
-    max_lenght, b_size = 6, 128 ### MAX LENGHT TO 7 FOR ALL
-    amino_acids = ["C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y"]
+    max_lenght, b_size = 7, 64 ### MAX LENGHT TO 7 FOR ALL
     resume_prediction = {}
     
-    for amino_acid in amino_acids:
-        training_table, sequence_table, class_table = read_table(training_data_path, amino_acid)
+    training_table, sequence_table, class_table = read_table(training_data_path)
 
-        """ Encoding sequence into vectors of amino acids
-        """
-        encoding_table = integer_encoding(sequence_table)
-        padding_table = padding_sequences(encoding_table)
-        one_hot_table = to_categorical(padding_table, num_classes=20)
-        one_hot_df = reshaping_sequences(one_hot_table, sequence_table, max_lenght, column_name="P")
-        
-        labeled_df = pd.concat([one_hot_df, class_table], axis=1)
-        data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test = splitting_data(labeled_df)
-        
-        neurons = len(list(labeled_df.drop(['class'], axis=1)))
-        model = Sequential()
-        model.add(Dense(int(neurons), input_dim=neurons, activation='relu', kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.001)))
-        model.add(Dense(int(neurons/3), activation='relu', kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.001)))
-        model.add(Dropout(0.3))
-        model.add(Dense(1, activation='sigmoid'))
-        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', matthews_correlation, precision, recall, tf.keras.metrics.AUC()])
-        
-        #es = EarlyStopping(monitor='val_matthews_correlation', mode='max', patience=5, verbose=1)
-        #es = EarlyStopping(monitor='val_auc', mode='max', patience=2, verbose=1)
-        es = EarlyStopping(monitor='val_loss', mode='min', patience=5, verbose=1)
-        history = model.fit(data_train, class_labels_train, epochs=100, batch_size=b_size, validation_data=(data_val, class_labels_val), callbacks=[es], verbose=1)
-        
-        Path(models_export_path).mkdir(parents=True, exist_ok=True)
-        model.save_weights("{}/{}_{}_model.h5".format(models_export_path, models_export_path.split("/")[-1], amino_acid))
-        
-        display_model_score(model, [data_train, class_labels_train], [data_val, class_labels_val], [data_test, class_labels_test], b_size)
-        
-        train_score, val_score, test_score = evaluate_models(model, data_train, class_labels_train, data_val, class_labels_val, data_test, class_labels_test, b_size)
-        train_dict, val_dict, test_dict = compile_stats(train_score, data_train, val_score, data_val, test_score, data_test)
+    """ Encoding sequence into vectors of amino acids
+    """
+    encoding_table = integer_encoding(sequence_table)
+    padding_table = padding_sequences(encoding_table, max_lenght)
+    one_hot_table = to_categorical(padding_table, num_classes=20)
+    one_hot_df = reshaping_sequences(one_hot_table, sequence_table, max_lenght, column_name="P")
+    
+    labeled_df = pd.concat([one_hot_df, class_table], axis=1)
+    data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test = splitting_data(labeled_df)
+    
+    neurons = len(list(labeled_df.drop(['class'], axis=1)))
+    model = Sequential()
+    model.add(Dense(int(neurons), input_dim=neurons, activation='relu', kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.001)))
+    model.add(Dense(int(neurons/3), activation='relu', kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.001)))
+    model.add(Dropout(0.3))
+    model.add(Dense(1, activation='sigmoid'))
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', matthews_correlation, precision, recall, tf.keras.metrics.AUC()])
+    
+    #es = EarlyStopping(monitor='val_matthews_correlation', mode='max', patience=5, verbose=1)
+    #es = EarlyStopping(monitor='val_auc', mode='max', patience=2, verbose=1)
+    es = EarlyStopping(monitor='val_loss', mode='min', patience=5, verbose=1)
+    history = model.fit(data_train, class_labels_train, epochs=100, batch_size=b_size, validation_data=(data_val, class_labels_val), callbacks=[es], verbose=1)
+    
+    Path(models_export_path).mkdir(parents=True, exist_ok=True)
+    model.save_weights("{}/{}_model.h5".format(models_export_path, models_export_path.split("/")[-1]))
+    
+    display_model_score(model, [data_train, class_labels_train], [data_val, class_labels_val], [data_test, class_labels_test], b_size)
+    
+    train_score, val_score, test_score = evaluate_models(model, data_train, class_labels_train, data_val, class_labels_val, data_test, class_labels_test, b_size)
+    train_dict, val_dict, test_dict = compile_stats(train_score, data_train, val_score, data_val, test_score, data_test)
 
-        resume_prediction.setdefault(amino_acid, {}).setdefault("Train", train_dict)
-        resume_prediction.setdefault(amino_acid, {}).setdefault("Val", val_dict)
-        resume_prediction.setdefault(amino_acid, {}).setdefault("Test", test_dict)
+    resume_prediction.setdefault("Train", train_dict)
+    resume_prediction.setdefault("Val", val_dict)
+    resume_prediction.setdefault("Test", test_dict)
 
-    resume_df = pd.DataFrame.from_dict({(i,j): resume_prediction[i][j] for i in resume_prediction.keys() for j in resume_prediction[i].keys()}, orient='index')
-    resume_df.to_csv("models_accurary_OHE_val_loss_only_sequence_no_middle.csv")
+    resume_df = pd.DataFrame.from_dict(resume_prediction, orient='index')
+    #resume_df = pd.DataFrame.from_dict({(i,j): resume_prediction[i][j] for i in resume_prediction.keys() for j in resume_prediction[i].keys()}, orient='index')
+    resume_df.to_csv("models_accurary_OHE_val_loss_only_sequence_all_together_decoy_neighbours.csv")
 

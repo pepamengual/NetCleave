@@ -1,44 +1,53 @@
 import random
 from pathlib import Path
+from predictor.core.generate_peptidome import generate_peptidome
 
-def prepare_cleavage_data(proteasome_dictionary, export_path):
-    """ Iterates for every key of proteasome_dictionary: C-terminal residue of MS peptides
+def prepare_cleavage_data(selected_dictionary, export_path, sequence_data):
+    """ Iterates for every key of selected_dictionary: C-terminal residue of MS peptides
         Creates a list consisting of all other peptides with different C-terminal residue
         Gets cleavage regions (+3) residues from the C-terminal samples
         Generates two equal size lists of cleavaged and non cleavaged samples having the same residue in C-terminal
         Exports data in a given path
     """
-    for amino_acid, proteasome_peptides in sorted(proteasome_dictionary.items()):
+    peptidome = generate_peptidome(sequence_data)
+    peptidome_residues = split_peptidome(peptidome)
+
+    for amino_acid, selected_peptides in sorted(selected_dictionary.items()):
         print("--> Preparing training data for {}...".format(amino_acid))
-        all_other_peptides = []
-        for amino_acid_, uncleaved_list_of_peptides in proteasome_dictionary.items():
-            if amino_acid_ != amino_acid:
-                all_other_peptides.extend(uncleaved_list_of_peptides)
-        proteasome_cleavages, equal_size_non_cleavaged_list = get_cleavage_region(amino_acid, proteasome_peptides, all_other_peptides)
-        if len(proteasome_cleavages) != len(equal_size_non_cleavaged_list):
-            print("WARNING: cleavage sample size ({}) differs from non cleavaged ones ({})".format(len(proteasome_cleavages), len(equal_size_non_cleavaged_list)))
-        export_data(export_path, amino_acid, proteasome_cleavages, equal_size_non_cleavaged_list)
+        selected_cleavages, decoy_cleavages = get_cleavage_region(amino_acid, selected_peptides, peptidome_residues[amino_acid])
+        export_data(export_path, amino_acid, selected_cleavages, decoy_cleavages)
 
-def get_cleavage_region(amino_acid, proteasome_peptides, all_other_peptides):
-    proteasome_cleavages = [proteasome_peptides[i][-8:-1] for i in range(len(proteasome_peptides))]
-    random_cleavage_1 = [proteasome_peptides[i][-9:-2] for i in range(len(proteasome_peptides))]
-    random_cleavage_2 = [proteasome_peptides[i][-7:] for i in range(len(proteasome_peptides))]
-    random_cleavage_3 = [all_other_peptides[i][-8:-1] for i in range(len(all_other_peptides))]
-    random_cleavage_4 = [all_other_peptides[i][-9:-2] for i in range(len(all_other_peptides))]
-    random_cleavage_5 = [all_other_peptides[i][-7:] for i in range(len(all_other_peptides))]
-    random_list = random_cleavage_1 + random_cleavage_2 + random_cleavage_3 + random_cleavage_4 + random_cleavage_5
+def split_peptidome(peptidome):
+    peptidome_residues = {}
+    residues = "ACDEFGHIKLMNPQRSTVWY"
+    residues_set = set([residue for residue in residues])
     
-    non_cleavaged_samples = []
-    for random_peptide in random_list:
-        proteasome_acting_amino_acid = random_peptide[3]
-        if proteasome_acting_amino_acid == amino_acid:
-            non_cleavaged_samples.append(random_peptide)
-    putative_non_cleavaged_samples = list(set(non_cleavaged_samples) - set(proteasome_cleavages)) #sanity filter check
-    equal_size_non_cleavaged_list = random.choices(putative_non_cleavaged_samples, k=len(proteasome_cleavages)) #same amount of negative entries, to check
-    
-    return proteasome_cleavages, equal_size_non_cleavaged_list
+    for peptide in peptidome:
+        peptide_set = set(peptide)
+        if not peptide_set - residues_set:
+            peptidome_residues.setdefault(peptide[3], []).append(peptide)
+    return peptidome_residues
+        
 
-def export_data(export_path, amino_acid, proteasome_cleavages, random_cleavages):
+def get_cleavage_region(amino_acid, selected_peptides, decoy_cleavages):
+    residues = "ACDEFGHIKLMNPQRSTVWY"
+    residues_set = set([residue for residue in residues])
+    selected_cleavages_no_filtered = [selected_peptides[i][-8:-1] for i in range(len(selected_peptides))]
+
+    selected_cleavages = []
+    for peptide in selected_cleavages_no_filtered:
+        peptide_set = set(peptide)
+        if not peptide_set - residues_set:
+            selected_cleavages.append(peptide)
+    
+    decoy_cleavages_ = list(set(decoy_cleavages) - set(selected_cleavages))
+    decoy_cleavages_ = random.choices(decoy_cleavages_, k=len(selected_cleavages))
+    
+    print("{} amino acid has {} cleavage sites and {} decoys from {} generated decoys".format(amino_acid, len(selected_cleavages), len(decoy_cleavages_), len(decoy_cleavages)))
+    
+    return selected_cleavages, decoy_cleavages_
+
+def export_data(export_path, amino_acid, selected_cleavages, random_cleavages):
     Path(export_path).mkdir(parents=True, exist_ok=True)
     file_name = "{}/{}_{}_sequence_class.txt".format(export_path, export_path.split("/")[-1], amino_acid)
     with open(file_name, "w") as f:
@@ -48,6 +57,6 @@ def export_data(export_path, amino_acid, proteasome_cleavages, random_cleavages)
             data = "{}\t{}\n".format(random_region, 0)
             f.write(data)
 
-        for cleavage_region in proteasome_cleavages:
+        for cleavage_region in selected_cleavages:
             data = "{}\t{}\n".format(cleavage_region, 1)
             f.write(data)

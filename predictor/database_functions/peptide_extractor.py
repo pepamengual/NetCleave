@@ -1,7 +1,7 @@
 import pandas as pd
 
 def extract_peptide_data(input_file_path, conditions_dictionary):
-    """ Extracts mass spectrometry peptides in IEDB under conditions
+    """ Extracts peptides in IEDB under user defined conditions
         Returns a dictionary with keys: uniprot_id, values: peptide_list
     """
     print("Extracting peptide data from IEDB...")
@@ -48,7 +48,6 @@ def apply_conditions(df, conditions_dictionary):
                 df = df[df[condition_type] != condition_value]
             if condition_search == "is_in":
                 df = df[df[condition_type].isin(condition_value)]
-    print(df)
     return df
 
 def create_dictionary(df):

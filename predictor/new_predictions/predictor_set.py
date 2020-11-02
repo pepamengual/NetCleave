@@ -144,7 +144,7 @@ def plot_prediction_per_residue_type(score_dict, cell_type, name):
 def plot_histogram(score_list, name):
     greater_than_half = sum(i >= 0.5 for i in score_list)
     print("{}/{} peptides had a cleavage score >= 0.5".format(greater_than_half, len(score_list)))
-    plt.hist(score_list, density=True, bins=20)
+    plt.hist(score_list, bins=20)
     plt.ylabel("Density")
     plt.xlabel("Probability")
     plt.savefig("{}_histogram.png".format(name))

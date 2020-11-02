@@ -1,3 +1,10 @@
+def join_data(uniprot_data, uniparc_data):
+    print("Merging Uniprot and Uniparc data..")
+    for uniprot_id, sequence in uniparc_data.items():
+        if not uniprot_id in uniprot_data:
+            uniprot_data.setdefault(uniprot_id, sequence)
+    return uniprot_data
+
 def locate_peptides(ms_data, uniprot_data):
     """
     Looks for adjacent C-terminal sequence for each peptide
@@ -10,19 +17,30 @@ def locate_peptides(ms_data, uniprot_data):
     amino_acids_possible_set = set_creator_of_amino_acids("ACDEFGHIKLMNPQRSTVWY")
     adjacent_lenght = 4
     data_dict, mutation_dict = {}, {}
+    found_peptides = not_found_peptides = mutated_peptides = len_set = 0
     for uniprot_id, peptide_set in ms_data.items():
+        peptide_set = set(peptide_set)
+        len_set += len(peptide_set)
         if uniprot_id in uniprot_data:
             peptide_set = [peptide[-5:] for peptide in peptide_set] #remove duplicated C-term cleavage per uniprot ID
-            peptide_set = set(peptide_set)
+            peptide_set = set(peptide_set) #avoid duplicated entries of longer peptides
             for peptide in peptide_set:
                 if peptide in uniprot_data[uniprot_id]:
+                    found_peptides += 1
                     last_peptide_residue, large_peptide = get_neighbour_sequence(uniprot_data, uniprot_id, peptide, adjacent_lenght, amino_acids_possible_set, 0)
                     if last_peptide_residue != None and large_peptide != None:
                         data_dict.setdefault(last_peptide_residue, []).append(large_peptide)
+                else:
+                    mutated_peptides += 1
+        else:
+            not_found_peptides += len(peptide_set)
                # else:
                #     last_peptide_residue, large_peptide = find_single_mutations_in_c_terminal(peptide, uniprot_data, uniprot_id, adjacent_lenght, amino_acids_possible_set)
                #     if last_peptide_residue != None and large_peptide != None:
                #         mutation_dict.setdefault(uniprot_id, []).append((peptide, large_peptide))
+    print("{} unique peptides".format(len_set))
+    print("{}/{} peptides have been found/not found in Uniprot/Uniparc".format(found_peptides, not_found_peptides))
+    print("{} mutation peptides".format(mutated_peptides))
     return data_dict, mutation_dict
 
 def find_single_mutations_in_c_terminal(peptide, uniprot_data, uniprot_id, adjacent_lenght, amino_acids_possible_set):
