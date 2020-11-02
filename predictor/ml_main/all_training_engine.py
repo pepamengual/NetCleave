@@ -121,7 +121,7 @@ def compile_stats(train_score, data_train, val_score, data_val, test_score, data
     return train_dict, val_dict, test_dict
 
 def create_models(training_data_path, models_export_path):
-    max_lenght, b_size = 7, 64 ### MAX LENGHT TO 7 FOR ALL
+    max_lenght, b_size = 7, 128 ### MAX LENGHT TO 7 FOR ALL
     resume_prediction = {}
     
     training_table, sequence_table, class_table = read_table(training_data_path)

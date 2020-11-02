@@ -7,7 +7,7 @@ from predictor.new_predictions import predictor_fasta, predictor_set
 HELP = " \
 Command:\n \
 ----------\n \
-Run: python3 PROcleave.py --predict_fasta\
+Run: python3 PROcleave.py --ARG\
 "
 def parse_args():
     parser = argparse.ArgumentParser(description=HELP, formatter_class=argparse.RawDescriptionHelpFormatter)
