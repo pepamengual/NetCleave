@@ -1,6 +1,6 @@
 import random
 from pathlib import Path
-from predictor.core.generate_peptidome import generate_peptidome
+#from predictor.core.generate_peptidome import generate_peptidome
 
 def prepare_cleavage_data(selected_dictionary, export_path):
     """ Iterates for every key of selected_dictionary: C-terminal residue of MS peptides

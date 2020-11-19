@@ -11,6 +11,8 @@ import tensorflow as tf
 from keras import regularizers
 from keras import backend as K
 from sklearn import preprocessing
+from xgboost import XGBClassifier
+import matplotlib.pyplot as plt
 
 def read_table(training_data_path):
     df_list = []
@@ -34,7 +36,7 @@ def integer_encoding(data):
                  'S': 15, 'T': 16, 'V': 17, 'W': 18, 'Y': 19}
     encode_data = {}
     encode_list = []
-    df = pd.read_csv("predictor/ml_main/VHSE_table.csv", sep=",", header=0, index_col=0)
+    df = pd.read_csv("predictor/ml_main/QSAR_table.csv", sep=",", header=0, index_col=0) #VHSE
     normalized_df=(df-df.min())/(df.max()-df.min())
     for residue in list("ACDEFGHIKLMNPQRSTVWY"):
         encode_data.setdefault(residue, normalized_df.loc[residue].tolist())
@@ -49,7 +51,7 @@ def integer_encoding(data):
 
 def generating_data(encode_list, max_lenght, column_name):
     print("Converting into DataFrame")
-    one_hot_df = pd.DataFrame(encode_list, columns=["{}{}".format(column_name, i) for i in range(max_lenght*8)])
+    one_hot_df = pd.DataFrame(encode_list, columns=["{}{}".format(column_name, i) for i in range(max_lenght*48)]) #8 for VHSE, 48 for QSAR
     print(one_hot_df)
     return one_hot_df
 
@@ -121,7 +123,7 @@ def compile_stats(train_score, data_train, val_score, data_val, test_score, data
     return train_dict, val_dict, test_dict
 
 def create_models(training_data_path, models_export_path):
-    max_lenght, b_size = 7, 1000 ### MAX LENGHT TO 7 FOR ALL
+    max_lenght, b_size = 7, 128 ### MAX LENGHT TO 7 FOR ALL
     resume_prediction = {}
     
     training_table, sequence_table, class_table = read_table(training_data_path)
@@ -139,16 +141,18 @@ def create_models(training_data_path, models_export_path):
     model.add(Dense(int(neurons), input_dim=neurons, activation='relu', kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.001)))
     model.add(Dense(int(neurons/3), activation='relu', kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.001)))
     model.add(Dropout(0.3))
+    model.add(Dense(int(neurons), activation='relu', kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.001)))
+    model.add(Dropout(0.3))
     model.add(Dense(1, activation='sigmoid'))
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', matthews_correlation, precision, recall, tf.keras.metrics.AUC()])
     
     #es = EarlyStopping(monitor='val_matthews_correlation', mode='max', patience=5, verbose=1)
     #es = EarlyStopping(monitor='val_auc', mode='max', patience=2, verbose=1)
-    es = EarlyStopping(monitor='val_loss', mode='min', patience=5, verbose=1)
-    history = model.fit(data_train, class_labels_train, epochs=100, batch_size=b_size, validation_data=(data_val, class_labels_val), callbacks=[es], verbose=1)
+    es = EarlyStopping(monitor='val_auc', mode='max', patience=20, verbose=1) #val_loss, min
+    history = model.fit(data_train, class_labels_train, epochs=1000, batch_size=b_size, validation_data=(data_val, class_labels_val), callbacks=[es], verbose=1)
     
     Path(models_export_path).mkdir(parents=True, exist_ok=True)
-    model.save_weights("{}/{}_model_VHSE.h5".format(models_export_path, models_export_path.split("/")[-1]))
+    model.save_weights("{}/{}_model_QSAR.h5".format(models_export_path, models_export_path.split("/")[-1])) #VHSE
     
     display_model_score(model, [data_train, class_labels_train], [data_val, class_labels_val], [data_test, class_labels_test], b_size)
     
@@ -161,5 +165,5 @@ def create_models(training_data_path, models_export_path):
 
     resume_df = pd.DataFrame.from_dict(resume_prediction, orient='index')
     #resume_df = pd.DataFrame.from_dict({(i,j): resume_prediction[i][j] for i in resume_prediction.keys() for j in resume_prediction[i].keys()}, orient='index')
-    resume_df.to_csv("model_VHSE.csv")
+    resume_df.to_csv("model_QSAR.csv") #VHSE
 
