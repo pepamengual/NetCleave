@@ -30,7 +30,7 @@ def locate_peptides(ms_data, uniprot_data):
                 if peptide in uniprot_data[uniprot_id]:
                     found_peptides += 1
                     selected_peptide, decoy_1, decoy_2 = get_neighbour_sequence(uniprot_data, uniprot_id, peptide, adjacent_lenght, residues_set)
-                    if selected_peptide != None and decoy_1 != None and decoy_2 != None:
+                    if selected_peptide != None and decoy_1 != None and decoy_2 != None and len(selected_peptide) == 7 and len(decoy_1) == 7 and len(decoy_2) == 7:
                         data_dict.setdefault("peptides", []).append(selected_peptide)
                         data_dict.setdefault("decoys", []).append(decoy_1)
                         data_dict.setdefault("decoys", []).append(decoy_2)

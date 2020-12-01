@@ -1,13 +1,14 @@
 import argparse
 from predictor.database_functions import peptide_extractor, uniprot_extractor, uniparc_extractor
 from predictor.core import all_peptide_uniprot_locator, all_training_data_generator
-from predictor.ml_main import all_training_engine
-from predictor.new_predictions import all_predictor_fasta, predictor_set, predictor_linker_all
+from predictor.ml_main import run_NN
+from predictor.new_predictions import predict_set
+#from predictor.new_predictions import all_predictor_fasta, predictor_set, predictor_linker_all
 
 HELP = " \
 Command:\n \
 ----------\n \
-Run: python3 PROcleave.py --ARG\
+Run: python3 NetCleave.py --ARG\
 "
 def parse_args():
     parser = argparse.ArgumentParser(description=HELP, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -27,24 +28,27 @@ def generating_data(iedb_path, uniprot_path, uniparc_path_headers, uniparc_path_
     return selected_dictionary
 
 def main(generate=False, train=False, predict_fasta=False, score_set=False):
-    iedb_path = "../PROcleave_data/mhc_ligand_full.csv" # download and unzip from http://www.iedb.org/database_export_v3.php
-    uniprot_path = "../PROcleave_data/uniprot_sprot.fasta" # download and decompress from https://www.uniprot.org/downloads REVIEWED fasta
-    uniparc_path_headers = "../PROcleave_data/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.tab"
-    uniparc_path_sequence = "../PROcleave_data/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.fasta"
-    mhc_class, technique = "I", "mass spectrometry"
+    iedb_path = "../NetCleave_data/mhc_ligand_full.csv" # download and unzip from http://www.iedb.org/database_export_v3.php
+    uniprot_path = "../NetCleave_data/uniprot/uniprot_sprot.fasta" # download and decompress from https://www.uniprot.org/downloads REVIEWED fasta
+    uniparc_path_headers = "../NetCleave_data/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.tab"
+    uniparc_path_sequence = "../NetCleave_data/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.fasta"
+    mhc_class, technique, mhc_family = "I", "mass spectrometry", "HLA-C"
 
-    training_data_path = "data/training_data/{}_{}".format(mhc_class, technique.replace(" ", "-"))
-    models_export_path = "data/models/{}_{}".format(mhc_class, technique.replace(" ", "-"))
+    training_data_path = "data/training_data/{}_{}_{}".format(mhc_class, technique.replace(" ", "-"), mhc_family)
+    models_export_path = "data/models/{}_{}_{}".format(mhc_class, technique.replace(" ", "-"), mhc_family)
 
     if not any([generate, train, predict_fasta, score_set]):
-        print("Please, provide an argument. See python3 PROcleave.py -h for more information")
+        print("Please, provide an argument. See python3 NetCleave.py -h for more information")
     
     if generate:
         conditions = {"Description": None, "Parent Protein IRI": None, 
                       "Method/Technique": ("contains", technique),
-                      "Description": ("not_contains", "SIINFEKL"),
-                      "MHC allele class": ("match", mhc_class)}
-                      #"Name": ("contains", "Homo sapiens")}
+                      "MHC allele class": ("match", mhc_class),
+                      #"Description": ("not_contains", "SIINFEKL"),
+                      "Name": ("contains", "Homo sapiens"),
+                      "Parent Species": ("contains", "Homo sapiens"),
+                      "Allele Name": ("contains", mhc_family)
+                     }
                       #"Cell Type": ("match", "B cell")}
                       #"Allele Name": ()},
                       #"Parent Species": ("is_in", virus_and_bacteria)}
@@ -54,8 +58,12 @@ def main(generate=False, train=False, predict_fasta=False, score_set=False):
         all_training_data_generator.prepare_cleavage_data(selected_dictionary, training_data_path)
 
     if train:
-        all_training_engine.create_models(training_data_path, models_export_path)
-    
+        run_NN.create_models(training_data_path, models_export_path)
+        #all_training_engine.create_models(training_data_path, models_export_path)
+        #all_VHSE_training_engine.create_models(training_data_path, models_export_path)
+        #all_VHSE_xgboost.create_models(training_data_path, models_export_path)
+        #all_QSAR_xgboost.create_models(training_data_path, models_export_path)
+
     if predict_fasta:
         results = {}
         peptide = "SIINFEKL"
@@ -80,15 +88,20 @@ def main(generate=False, train=False, predict_fasta=False, score_set=False):
 
     if score_set:
         conditions = {"Description": None, "Parent Protein IRI": None, 
-                      "Method/Technique": ("contains", "mass spectrometry"),
+                      "Method/Technique": ("contains", technique),
                       #"Method/Technique": ("contains", "radio"),
-                      "MHC allele class": ("match", "I")}
-                      #"Name": ("contains", "Homo sapiens")}
+                      "MHC allele class": ("match", mhc_class),
+                      "Name": ("contains", "Homo sapiens"),
+                      "Allele Name": ("contains", mhc_family),
+                      "Parent Species": ("contains", "Homo sapiens")}
                       #"Cell Type": ("match", "B cell")}
-        export_set_path = "data/score_set/class_{0}/class_{0}_{1}_data.csv".format(conditions["MHC allele class"][1], "Individual")
+        name = "class_{0}_{1}".format(mhc_class, mhc_family)
+        export_set_path = "data/score_set/class_{0}_{1}/class_{0}_{1}_data.csv".format(mhc_class, mhc_family)
         selected_dictionary = generating_data(iedb_path, uniprot_path, uniparc_path_headers, uniparc_path_sequence, conditions)
-        scoring_data_generator.generating_scoring_data(selected_dictionary, export_set_path)
-        predictor_set.selected_prediction(export_set_path, models_export_path, "Individual", "set")
+        all_training_data_generator.prepare_score_data(selected_dictionary, export_set_path)
+        predict_set.score_set(export_set_path, models_export_path, name)
+        #scoring_data_generator.generating_scoring_data(selected_dictionary, export_set_path)
+        #predictor_set.selected_prediction(export_set_path, models_export_path, "set")
     
 if __name__ == "__main__":
     generate, train, predict_fasta, score_set = parse_args()
