@@ -5,7 +5,7 @@ NetCleave is a retrainable method for predicting C-terminal peptide processing o
 </p>
 
 <p align="center">
-<img src="images/draw_scheme_method.png" width="400">
+<img src="images/draw_scheme_method.png" width="800">
 </p>
 
 <p align="justify">
@@ -15,7 +15,6 @@ In brief, NetCleave maps reported IEDB peptides to protein sequences in UniProt/
 If you use NetCleave, please cite us:
 
 > NetCleave: an open-source algorithm for predicting C-terminal antigen processing for MHC-I and MHC-II (manuscript in submission)
-
 
 ## NetCleave dependencies
 
