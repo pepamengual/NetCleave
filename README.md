@@ -1,4 +1,20 @@
-# PROcleave
+# NetCleave
 
-PROcleave is under development.
+NetCleave is a retrainable method for predicting C-terminal peptide processing of MHC-I and MHC-II pathways. In brief, NetCleave maps reported IEDB peptides to protein sequences in UniProt/UniParc. After the identification of the C-terminal cleavage site, amino acid sequences are coded using QSAR descriptors, including steric, electrostatic and hydrophobic properties. Finally, a neural network architecture is used to generate the predictive model.
+
+If you use NetCleave, please cite us:
+
+(missing reference)
+
+## How to use NetCleave
+
+NetCleave can be used in two different ways: using our pre-computed models, or easily retraining the method and constructing your own models depending on your needs.
+
+### Using pre-trained models
+
+Several pre-trained models are available, which should cover most of the needs of the scientific community. Most common human models available are: HLA-A, HLA-B, HLA-C, HLA-DP, HLA-DQ and HLA-DP.
+
+### Retraining the method and constructing your own models
+
+NetCleave was specificaly build to be easily retrained: IEDB is continously being updated and algorithms should be periodically updated. In order to retrain NetCleave method, user needs first to download the last versions of IEDB and UniParc/UniProt.
 
