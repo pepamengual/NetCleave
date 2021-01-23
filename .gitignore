@@ -1,2 +1,1 @@
-old/
-predictor/**/*.pyc
+*.pyc
