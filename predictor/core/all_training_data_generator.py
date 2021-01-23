@@ -1,6 +1,5 @@
 import random
 from pathlib import Path
-#from predictor.core.generate_peptidome import generate_peptidome
 
 def prepare_cleavage_data(selected_dictionary, export_path):
     """ Iterates for every key of selected_dictionary: C-terminal residue of MS peptides
@@ -30,7 +29,6 @@ def prepare_cleavage_data(selected_dictionary, export_path):
 def prepare_score_data(selected_dictionary, export_path):
     folder_path = "/".join(export_path.split("/")[:-1])
     Path(folder_path).mkdir(parents=True, exist_ok=True)
-    #file_name = "{}/{}_sequence_class.txt".format(export_path, export_path.split("/")[-1])
     selected_cleavages = selected_dictionary["peptides"]
     with open(export_path, "w") as f:
         header = "sequence\n"

@@ -1,6 +1,5 @@
 import pandas as pd
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.feature_selection import SelectFromModel
+from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import numpy as np
 from keras.models import Sequential
@@ -20,7 +19,6 @@ def score_set(data_path, model_path, name):
     prediction_df = pd.DataFrame(prediction, columns=["prediction"])
     prediction_df["sequence"] = df["sequence"]
     print(prediction_df)
-    #plot_histogram(prediction_df, name)    
     return prediction_df
 
 def plot_histogram(prediction_df, name):
@@ -33,11 +31,11 @@ def load_model(model_path):
     model_file_path = "{}/{}_model.h5".format(model_path, model_path.split("/")[-1])
     neurons = 336
     model = Sequential()
-    model.add(Dense(int(neurons), input_dim=neurons, activation='tanh', kernel_initializer="glorot_normal"))#, kernel_initializer='he_normal')) #tanh
-    model.add(Dense(int(neurons/3), activation='tanh', kernel_initializer="glorot_normal"))#, kernel_initializer='he_normal')) #tanh
+    model.add(Dense(int(neurons), input_dim=neurons, activation='tanh', kernel_initializer="glorot_normal"))
+    model.add(Dense(int(neurons/3), activation='tanh', kernel_initializer="glorot_normal"))
     model.add(Dropout(0.1))
     model.add(Dense(1, activation='sigmoid'))
-    opt = SGD(learning_rate=0.01, momentum=0.00, nesterov=False, name='SGD')#0.01
+    opt = SGD(learning_rate=0.01, momentum=0.00, nesterov=False, name='SGD')
     model.compile(optimizer=opt, loss='binary_crossentropy')
     model.load_weights(model_file_path)
     return model
@@ -51,7 +49,6 @@ def read_descriptors_table():
     print("---> Reading descriptors...")
     path = "predictor/ml_main/QSAR_table.csv"
     df = pd.read_csv(path, sep=",", header=0, index_col=0)
-    #scaler = MinMaxScaler(feature_range=(0, 1))
     scaler = StandardScaler()
     scaled_data = scaler.fit_transform(df)
     scaled_df = pd.DataFrame(scaled_data, columns=df.columns, index=df.index)

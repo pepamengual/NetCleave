@@ -116,7 +116,6 @@ def run_NN(encoded_labeled_df, models_export_path, path):
     
     
     neurons = len(list(encoded_labeled_df.drop(['class'], axis=1)))
-    print(neurons)
     model = Sequential()
     model.add(Dense(int(neurons), input_dim=neurons, activation='tanh', kernel_initializer="glorot_normal"))
     model.add(Dense(int(neurons/3), activation='tanh', kernel_initializer="glorot_normal"))
