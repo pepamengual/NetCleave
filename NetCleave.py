@@ -16,8 +16,9 @@ def parse_args():
     parser.add_argument('--train', help='Train the neural network', action='store_true')
     parser.add_argument('--predict_fasta', help='Predict selected cleavage from FASTA sequence', action='store_true')
     parser.add_argument('--score_set', help='Predict a set of peptides from IEDB file', action='store_true')
+    parser.add_argument('--score_csv', help='Predict a set of cleavage sites from csv', action='store_true')
     args = parser.parse_args()
-    return args.generate, args.train, args.predict_fasta, args.score_set
+    return args.generate, args.train, args.predict_fasta, args.score_set, args.score_csv
 
 def generating_data(iedb_path, uniprot_path, uniparc_path_headers, uniparc_path_sequence, conditions):
     iedb_data = peptide_extractor.extract_peptide_data(iedb_path, conditions)
@@ -27,17 +28,17 @@ def generating_data(iedb_path, uniprot_path, uniparc_path_headers, uniparc_path_
     selected_dictionary = all_peptide_uniprot_locator.locate_peptides(iedb_data, sequence_data)
     return selected_dictionary
 
-def main(generate=False, train=False, predict_fasta=False, score_set=False):
+def main(generate=False, train=False, predict_fasta=False, score_set=False, score_csv=False):
     iedb_path = "../NetCleave_data/mhc_ligand_full.csv" # download and unzip from http://www.iedb.org/database_export_v3.php
     uniprot_path = "../NetCleave_data/uniprot/uniprot_sprot.fasta" # download and decompress from https://www.uniprot.org/downloads REVIEWED fasta
     uniparc_path_headers = "../NetCleave_data/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.tab"
     uniparc_path_sequence = "../NetCleave_data/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.fasta"
-    mhc_class, technique, mhc_family = "I", "mass spectrometry", "HLA-C"
+    mhc_class, technique, mhc_family = "II", "mass spectrometry", "HLA"
 
     training_data_path = "data/training_data/{}_{}_{}".format(mhc_class, technique.replace(" ", "-"), mhc_family)
     models_export_path = "data/models/{}_{}_{}".format(mhc_class, technique.replace(" ", "-"), mhc_family)
 
-    if not any([generate, train, predict_fasta, score_set]):
+    if not any([generate, train, predict_fasta, score_set, score_csv]):
         print("Please, provide an argument. See python3 NetCleave.py -h for more information")
     
     if generate:
@@ -45,8 +46,8 @@ def main(generate=False, train=False, predict_fasta=False, score_set=False):
                       "Method/Technique": ("contains", technique),
                       "MHC allele class": ("match", mhc_class),
                       #"Description": ("not_contains", "SIINFEKL"),
-                      "Name": ("contains", "Homo sapiens"),
-                      "Parent Species": ("contains", "Homo sapiens"),
+                      #"Name": ("contains", "Homo sapiens"),
+                      #"Parent Species": ("contains", "Homo sapiens"),
                       "Allele Name": ("contains", mhc_family)
                      }
                       #"Cell Type": ("match", "B cell")}
@@ -102,7 +103,10 @@ def main(generate=False, train=False, predict_fasta=False, score_set=False):
         predict_set.score_set(export_set_path, models_export_path, name)
         #scoring_data_generator.generating_scoring_data(selected_dictionary, export_set_path)
         #predictor_set.selected_prediction(export_set_path, models_export_path, "set")
-    
+    if score_csv:
+        csv_path = "SIINFEKL.csv"
+        predict_set.score_set(csv_path, models_export_path, "SIINKFEKL_prueba")
+
 if __name__ == "__main__":
-    generate, train, predict_fasta, score_set = parse_args()
-    main(generate, train, predict_fasta, score_set)
+    generate, train, predict_fasta, score_set, score_csv = parse_args()
+    main(generate, train, predict_fasta, score_set, score_csv)

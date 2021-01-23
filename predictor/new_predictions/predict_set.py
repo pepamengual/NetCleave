@@ -6,23 +6,25 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras import backend as K
+from tensorflow.keras.optimizers import SGD
 
 def score_set(data_path, model_path, name):
     peptide_lenght = 7
     model = load_model(model_path)
     df = read_data_table(data_path)
+    print(df)
     descriptors_df = read_descriptors_table()
     encode_data = encode_sequence_data(df, descriptors_df)
     encoded_df = generate_encoded_df(encode_data, peptide_lenght, descriptors_df)
     prediction = model.predict(encoded_df)
     prediction_df = pd.DataFrame(prediction, columns=["prediction"])
-    
-    print(prediction)
+    prediction_df["sequence"] = df["sequence"]
     print(prediction_df)
-    plot_histogram(prediction_df, name)    
+    #plot_histogram(prediction_df, name)    
+    return prediction_df
 
 def plot_histogram(prediction_df, name):
-    prediction_df.plot.hist(bins=20, alpha=0.5)
+    prediction_df["prediction"].plot.hist(bins=20, alpha=0.5)
     plt.ylabel("Amount of cleavage sites")
     plt.xlabel("Probability")
     plt.savefig("{}_histogram.png".format(name))
@@ -31,13 +33,12 @@ def load_model(model_path):
     model_file_path = "{}/{}_model.h5".format(model_path, model_path.split("/")[-1])
     neurons = 336
     model = Sequential()
-    model.add(Dense(int(neurons), input_dim=neurons, activation='tanh', kernel_initializer='he_normal'))
-    model.add(Dense(int(neurons/3), activation='tanh', kernel_initializer='he_normal'))
-    model.add(Dropout(0.3))
-    model.add(Dense(int(neurons), activation='tanh', kernel_initializer='he_normal'))
-    model.add(Dropout(0.3))
+    model.add(Dense(int(neurons), input_dim=neurons, activation='tanh', kernel_initializer="glorot_normal"))#, kernel_initializer='he_normal')) #tanh
+    model.add(Dense(int(neurons/3), activation='tanh', kernel_initializer="glorot_normal"))#, kernel_initializer='he_normal')) #tanh
+    model.add(Dropout(0.1))
     model.add(Dense(1, activation='sigmoid'))
-    model.compile(optimizer='adam', loss='binary_crossentropy')
+    opt = SGD(learning_rate=0.01, momentum=0.00, nesterov=False, name='SGD')#0.01
+    model.compile(optimizer=opt, loss='binary_crossentropy')
     model.load_weights(model_file_path)
     return model
 

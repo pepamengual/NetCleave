@@ -9,7 +9,9 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.callbacks import EarlyStopping
 from tensorflow.keras.metrics import AUC
+from tensorflow.keras.optimizers import SGD
 from keras import backend as K
+import matplotlib.pyplot as plt
 
 def read_data_table(path):
     print("---> Reading training data...")
@@ -109,9 +111,10 @@ def evaluate_models(model, data_train, class_labels_train, data_val, class_label
     test_score = model.evaluate(data_test, class_labels_test, batch_size=b_size, verbose=1)
     return train_score, val_score, test_score
 
-def run_NN(encoded_labeled_df, models_export_path):
+def run_NN(encoded_labeled_df, models_export_path, path):
+    path = path.split("/")[-1]
     print("---> NN...")
-    b_size = 128
+    b_size = 64
     data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test = splitting_data(encoded_labeled_df)
     data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test = prepare(data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test)
     
@@ -119,20 +122,28 @@ def run_NN(encoded_labeled_df, models_export_path):
     neurons = len(list(encoded_labeled_df.drop(['class'], axis=1)))
     print(neurons)
     model = Sequential()
-    model.add(Dense(int(neurons), input_dim=neurons, activation='tanh', kernel_initializer='he_normal'))
-    model.add(Dense(int(neurons/3), activation='tanh', kernel_initializer='he_normal'))
-    model.add(Dropout(0.3))
-    model.add(Dense(int(neurons), activation='tanh', kernel_initializer='he_normal'))
-    model.add(Dropout(0.3))
+    model.add(Dense(int(neurons), input_dim=neurons, activation='tanh', kernel_initializer="glorot_normal"))#, kernel_initializer='he_normal')) #tanh
+    model.add(Dense(int(neurons/3), activation='tanh', kernel_initializer="glorot_normal"))#, kernel_initializer='he_normal')) #tanh
+    model.add(Dropout(0.5))
     model.add(Dense(1, activation='sigmoid'))
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', matthews_correlation, precision, recall, AUC()])
+    opt = SGD(learning_rate=0.01, momentum=0.00, nesterov=False, name='SGD')#0.01
+    model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy', matthews_correlation, precision, recall, AUC()])#adam #SGD
 
-    es = EarlyStopping(monitor='val_auc', mode='max', patience=10, verbose=1)
-    history = model.fit(data_train, class_labels_train, validation_data=(data_val, class_labels_val), epochs=100, batch_size=b_size, callbacks=[es], verbose=1)
+    es = EarlyStopping(monitor='val_matthews_correlation', mode='max', patience=7, verbose=1)
+    history = model.fit(data_train, class_labels_train, validation_data=(data_val, class_labels_val), epochs=5000, batch_size=b_size, callbacks=[es], verbose=1)
     train_score, val_score, test_score = evaluate_models(model, data_train, class_labels_train, data_val, class_labels_val, data_test, class_labels_test, b_size)
 
     Path(models_export_path).mkdir(parents=True, exist_ok=True)
     model.save_weights("{}/{}_model.h5".format(models_export_path, models_export_path.split("/")[-1]))
+
+    plt.plot(history.history['loss'], label='Train')
+    plt.plot(history.history['val_loss'], label='Test')
+    plt.ylabel("Loss")
+    plt.xlabel("Epoch")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig("model_{}.png".format(path), dpi=300)
+    #plt.show()
 
 def create_models(training_data_path, model_path):
     #features_xgboost = ['2_VHSE6', '0_VHSE6', '1_VHSE6', '0_VHSE5', '1_VHSE7', '1_VHSE8', '0_VHSE1', '0_VHSE3', '3_VHSE3', '0_VHSE7', '2_VHSE7', '1_VHSE3', '3_VHSE2', '3_VHSE5', '1_VHSE2', '2_VHSE8', '1_VHSE5', '2_VHSE2', '1_VHSE1', '3_VHSE1', '2_VHSE5', '2_VHSE1']
@@ -150,6 +161,6 @@ def create_models(training_data_path, model_path):
     encoded_df = generate_encoded_df(encode_data, peptide_lenght, df_descriptors)
     
     encoded_labeled_df = generate_encoded_labeled_df(encoded_df, class_table)#, features_xgboost)
-    run_NN(encoded_labeled_df, model_path)
+    run_NN(encoded_labeled_df, model_path, training_data_path)
 
 #feature_selection()

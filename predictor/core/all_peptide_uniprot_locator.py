@@ -51,9 +51,9 @@ def get_neighbour_sequence(uniprot_data, uniprot_id, peptide, adjacent_lenght, r
         large_peptide = "".join(peptide + post_sequence)
         large_peptide_set = set(large_peptide)
         if not large_peptide_set - residues_set:
-            selected_peptide = large_peptide[-8:-1]
-            decoy_1 = large_peptide[-7:]
-            decoy_2 = large_peptide[-9:-2]
+            selected_peptide = large_peptide[1:8]#[-8:-1]
+            decoy_1 = large_peptide[0:7]#[-7:]
+            decoy_2 = large_peptide[2:9]#[-9:-2]
             return selected_peptide, decoy_1, decoy_2
         else:
             return None, None, None
