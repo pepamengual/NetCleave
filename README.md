@@ -67,8 +67,10 @@ NetCleave was specificaly designed to be easily retrained. In order to do so, us
 
 - Decompress or obtain databases
 > IEDB - data/databases/iedb folder. New versions may be found at: http://www.iedb.org/database_export_v3.php
+
 > UniProt/UniParc - data/databases/uniprot and data/databases/uniparc folders. New versions may be found at: https://www.uniprot.org/downloads
- ** We recomend to use the last version of IEDB while keeping the same UniProt/UniParc version that we provided in this repository**
+
+**We recomend to use the last version of IEDB while keeping the same UniProt/UniParc version that we provided in this repository**
 
 - Define IEDB, UniProt and UniParc file paths on NetCleave main function
 - Define HLA class and HLA family of interest, as detailed in the previous section
