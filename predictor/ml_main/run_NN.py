@@ -1,8 +1,7 @@
 from pathlib import Path
 import pandas as pd
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-from sklearn.feature_selection import SelectFromModel
 import matplotlib.pyplot as plt
 import numpy as np
 from keras.models import Sequential
@@ -11,7 +10,6 @@ from keras.callbacks import EarlyStopping
 from tensorflow.keras.metrics import AUC
 from tensorflow.keras.optimizers import SGD
 from keras import backend as K
-import matplotlib.pyplot as plt
 
 def read_data_table(path):
     print("---> Reading training data...")
@@ -24,7 +22,6 @@ def read_data_table(path):
 def read_descriptors_table(path):
     print("---> Reading descriptors...")
     df = pd.read_csv(path, sep=",", header=0, index_col=0)
-    #scaler = MinMaxScaler(feature_range=(0, 1))
     scaler = StandardScaler()
     scaled_data = scaler.fit_transform(df)
     scaled_df = pd.DataFrame(scaled_data, columns=df.columns, index=df.index)
@@ -49,11 +46,10 @@ def generate_encoded_df(encode_data, peptide_lenght, df):
     encoded_df = pd.DataFrame(encode_data, columns=["{}_{}".format(i, j) for i in range(peptide_lenght) for j in descriptor_header])
     return encoded_df
 
-def generate_encoded_labeled_df(encoded_df, class_table):#, features_xgboost):
+def generate_encoded_labeled_df(encoded_df, class_table):
     print("---> Labeling the descriptor dataframe...")
-    #scaled_df = scaled_df[features_xgboost]
     encoded_labeled_df = pd.concat([encoded_df, class_table], axis=1)
-    encoded_labeled_df = encoded_labeled_df.sample(frac=1).reset_index(drop=True) #shuffles data
+    encoded_labeled_df = encoded_labeled_df.sample(frac=1).reset_index(drop=True)
     return encoded_labeled_df
 
 def splitting_data(df):
@@ -122,12 +118,12 @@ def run_NN(encoded_labeled_df, models_export_path, path):
     neurons = len(list(encoded_labeled_df.drop(['class'], axis=1)))
     print(neurons)
     model = Sequential()
-    model.add(Dense(int(neurons), input_dim=neurons, activation='tanh', kernel_initializer="glorot_normal"))#, kernel_initializer='he_normal')) #tanh
-    model.add(Dense(int(neurons/3), activation='tanh', kernel_initializer="glorot_normal"))#, kernel_initializer='he_normal')) #tanh
+    model.add(Dense(int(neurons), input_dim=neurons, activation='tanh', kernel_initializer="glorot_normal"))
+    model.add(Dense(int(neurons/3), activation='tanh', kernel_initializer="glorot_normal"))
     model.add(Dropout(0.5))
     model.add(Dense(1, activation='sigmoid'))
-    opt = SGD(learning_rate=0.01, momentum=0.00, nesterov=False, name='SGD')#0.01
-    model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy', matthews_correlation, precision, recall, AUC()])#adam #SGD
+    opt = SGD(learning_rate=0.01, momentum=0.00, nesterov=False, name='SGD')
+    model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy', matthews_correlation, precision, recall, AUC()])
 
     es = EarlyStopping(monitor='val_matthews_correlation', mode='max', patience=7, verbose=1)
     history = model.fit(data_train, class_labels_train, validation_data=(data_val, class_labels_val), epochs=5000, batch_size=b_size, callbacks=[es], verbose=1)
@@ -143,24 +139,17 @@ def run_NN(encoded_labeled_df, models_export_path, path):
     plt.legend()
     plt.tight_layout()
     plt.savefig("model_{}.png".format(path), dpi=300)
-    #plt.show()
 
 def create_models(training_data_path, model_path):
-    #features_xgboost = ['2_VHSE6', '0_VHSE6', '1_VHSE6', '0_VHSE5', '1_VHSE7', '1_VHSE8', '0_VHSE1', '0_VHSE3', '3_VHSE3', '0_VHSE7', '2_VHSE7', '1_VHSE3', '3_VHSE2', '3_VHSE5', '1_VHSE2', '2_VHSE8', '1_VHSE5', '2_VHSE2', '1_VHSE1', '3_VHSE1', '2_VHSE5', '2_VHSE1']
-    #features_xgboost = ['1_V11', '1_V28', '1_V3', '1_V32', '1_V7', '1_V9', '2_V1', '2_V14', '2_V2', '2_V28', '2_V3', '2_V32', '3_V10', '3_V3', '3_V32']
-    #training_data_path = "sample_data.txt"
     print(training_data_path)
     peptide_lenght = 7
     sequence_table, class_table = read_data_table(training_data_path)
 
     descriptors_path = "predictor/ml_main/QSAR_table.csv"
-    #descriptors_path = "QSAR_table.csv"
     df_descriptors = read_descriptors_table(descriptors_path)
 
     encode_data = encode_sequence_data(sequence_table, df_descriptors)
     encoded_df = generate_encoded_df(encode_data, peptide_lenght, df_descriptors)
     
-    encoded_labeled_df = generate_encoded_labeled_df(encoded_df, class_table)#, features_xgboost)
+    encoded_labeled_df = generate_encoded_labeled_df(encoded_df, class_table)
     run_NN(encoded_labeled_df, model_path, training_data_path)
-
-#feature_selection()
