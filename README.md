@@ -32,11 +32,11 @@ NetCleave has the following dependencies:
 <p align="justify">
 NetCleave is very easy to use. It has three main functions:
 
-- generate: gets C-terminal data from IEDB and UniProt/UniParc
-- train: runs the neural network and saves weights
-- predict_csv: scores C-terminal sites
+- **generate** - gets C-terminal data from IEDB and UniProt/UniParc.
+- **train** - runs the neural network and saves weights.
+- **predict_csv** - scores C-terminal sites from a csv file.
 
-Users can choose between using NetCleave pre-trained models or easily retraining the models:
+Users can choose between using NetCleave **pre-trained models** or **easily retraining them**.
 </p>
 
 ### Using pre-trained models
