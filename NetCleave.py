@@ -2,7 +2,7 @@ import argparse
 from predictor.database_functions import peptide_extractor, uniprot_extractor, uniparc_extractor
 from predictor.core import all_peptide_uniprot_locator, all_training_data_generator
 from predictor.ml_main import run_NN
-from predictor.new_predictions import predict_set
+from predictor.predictions import predict_csv
 
 HELP = " \
 Command:\n \
@@ -26,7 +26,7 @@ def generating_data(iedb_path, uniprot_path, uniparc_path_headers, uniparc_path_
     return selected_dictionary
 
 def main(generate=False, train=False, score_csv=False):
-    mhc_class, technique, mhc_family = "II", "mass spectrometry", "HLA"
+    mhc_class, technique, mhc_family = "I", "mass spectrometry", "HLA-A"
     training_data_path = "data/training_data/{}_{}_{}".format(mhc_class, technique.replace(" ", "-"), mhc_family)
     models_export_path = "data/models/{}_{}_{}".format(mhc_class, technique.replace(" ", "-"), mhc_family)
 
@@ -53,8 +53,8 @@ def main(generate=False, train=False, score_csv=False):
         run_NN.create_models(training_data_path, models_export_path)
 
     if score_csv:
-        csv_path = "score.csv"
-        predict_set.score_set(csv_path, models_export_path, "score_prueba")
+        csv_path = "example_file_NetCleave_score.csv"
+        predict_csv.score_set(csv_path, models_export_path, "ABC")
 
 if __name__ == "__main__":
     generate, train, score_csv = parse_args()

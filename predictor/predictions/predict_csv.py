@@ -11,21 +11,17 @@ def score_set(data_path, model_path, name):
     peptide_lenght = 7
     model = load_model(model_path)
     df = read_data_table(data_path)
-    print(df)
     descriptors_df = read_descriptors_table()
     encode_data = encode_sequence_data(df, descriptors_df)
     encoded_df = generate_encoded_df(encode_data, peptide_lenght, descriptors_df)
     prediction = model.predict(encoded_df)
     prediction_df = pd.DataFrame(prediction, columns=["prediction"])
     prediction_df["sequence"] = df["sequence"]
-    print(prediction_df)
+    
+    export_path = "{}_NetCleave.csv".format(data_path.split(".")[0])
+    prediction_df.to_csv(export_path)
+    print("Exporting predictions to: {}".format(export_path))
     return prediction_df
-
-def plot_histogram(prediction_df, name):
-    prediction_df["prediction"].plot.hist(bins=20, alpha=0.5)
-    plt.ylabel("Amount of cleavage sites")
-    plt.xlabel("Probability")
-    plt.savefig("{}_histogram.png".format(name))
 
 def load_model(model_path):
     model_file_path = "{}/{}_model.h5".format(model_path, model_path.split("/")[-1])
