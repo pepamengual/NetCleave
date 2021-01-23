@@ -1,4 +1,3 @@
-import random
 from pathlib import Path
 
 def prepare_cleavage_data(selected_dictionary, export_path):
