@@ -12,10 +12,10 @@ NetCleave is a retrainable method for predicting C-terminal peptide processing o
 In brief, NetCleave maps reported IEDB peptides to protein sequences in UniProt/UniParc. After the identification of the C-terminal cleavage site, amino acid sequences are coded using QSAR descriptors, including steric, electrostatic and hydrophobic properties. Finally, a neural network architecture is used to generate the predictive model.
 </p>
 
-
 If you use NetCleave, please cite us:
 
-(missing reference)
+> NetCleave: an open-source algorithm for predicting C-terminal antigen processing for MHC-I and MHC-II (manuscript in submission)
+
 
 ## NetCleave dependencies
 
