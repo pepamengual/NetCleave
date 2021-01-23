@@ -14,7 +14,8 @@ In brief, NetCleave maps reported IEDB peptides to protein sequences in UniProt/
 
 If you use NetCleave, please cite us:
 
-> NetCleave: an open-source algorithm for predicting C-terminal antigen processing for MHC-I and MHC-II (manuscript in submission)
+> <p align="justify"> NetCleave: an open-source algorithm for predicting C-terminal antigen processing for MHC-I and MHC-II (manuscript in submission)
+</p>
 
 NetCleave has the following dependencies:
 
@@ -47,14 +48,16 @@ In order to use NetCleave, user needs to define a few parameters:
 - HLA class of interest
 > Either I or II - **mhc_class variable on NetCleave main function**.
 - HLA family of interest
-> Several pre-trained models are available, which should cover most of the needs of the scientific community. This includes models for *HLA-A*, *HLA-B*, *HLA-C*, *HLA-DP*, *HLA-DQ*, *HLA-DP*, *H2-Kb*, *H2-Db*, *HLA-A02:01*, *HLA-B07:02*, and others. Check data/models folder - **mhc_family variable on NetCleave main function**.
+> <p align="justify"> Several pre-trained models are available, which should cover most of the needs of the scientific community. This includes models for *HLA-A*, *HLA-B*, *HLA-C*, *HLA-DP*, *HLA-DQ*, *HLA-DP*, *H2-Kb*, *H2-Db*, *HLA-A02:01*, *HLA-B07:02*, and others. Check data/models folder - **mhc_family variable on NetCleave main function**.
+</p>
 
 NetCleave can predict the cleavage probability of a C-terminal site, which we defined as:
 
 > **Four (4) last amino acids of a peptide + three (3) following amino acids in sequence**
 
+<p align="justify">
 User needs to define **a sequence of seven (7) residues lenght** following the previous scheme, and add them into a csv file (column name: "sequence"). An example can be found on the "*example_file_NetCleave_score.csv*" file. The command to score cvs files is the following:
-
+</p>
 > python3 NetCleave.py --score_csv
 
 After running this command, a csv file with the results will be generated.
@@ -70,14 +73,18 @@ NetCleave was specificaly designed to be easily retrained. In order to do so, us
 
 > UniProt/UniParc - data/databases/uniprot and data/databases/uniparc folders. New versions may be found at: https://www.uniprot.org/downloads
 
+<p align="justify">
 **We recomend to use the last version of IEDB while keeping the same UniProt/UniParc version that we provided in this repository**
+</p>
 
 - Define IEDB, UniProt and UniParc file paths on NetCleave main function
 - Define HLA class and HLA family of interest, as detailed in the previous section
 - Execute the following command:
 > python3 NetCleave --generate --train
 
+<p align="justify">
 After running this command, NetCleave will parse IEDB and UniProt/UniParc information and will run the neural network to generate a predictive model. Live statistics will be displayed on the screen, and weights will be saved automatically. In addition, a plot consisting on the training and testing loss performance will be saved.
+</p>
 
 > <p align="justify"> User should check the quality of the model. If the loss performance between the training and testing groups differ substantially or if there is any sign of overfitting, the user should modify predictor/ml_main/run_NN.py script. Usually, this phenomena happens because a very small dataset is used (a few peptides), which is not enough for building a high quality model. If this happens, consider to generate a more general model (for instance, instead of HLA-A0201, use HLA-A02 or HLA-A).
 </p>
