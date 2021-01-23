@@ -5,7 +5,7 @@ NetCleave is a retrainable method for predicting C-terminal peptide processing o
 </p>
 
 <p align="center">
-<img src="images/draw_scheme_method.png" width="800">
+<img src="images/draw_scheme_method.png" width="600">
 </p>
 
 <p align="justify">
@@ -16,7 +16,7 @@ If you use NetCleave, please cite us:
 
 > NetCleave: an open-source algorithm for predicting C-terminal antigen processing for MHC-I and MHC-II (manuscript in submission)
 
-## NetCleave dependencies
+NetCleave has the following dependencies:
 
 - [argparse](https://docs.python.org/3/library/argparse.html)
 - [pandas](https://pandas.pydata.org/)
