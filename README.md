@@ -29,7 +29,15 @@ NetCleave has the following dependencies:
 
 ## How to use NetCleave
 
-NetCleave can be used in two different ways: using our pre-computed models, or easily retraining the method and constructing your own models depending on your needs.
+<p align="justify">
+NetCleave is very easy to use. It has three main functions:
+
+- generate: gets C-terminal data from IEDB and UniProt/UniParc
+- train: runs the neural network and saves weights
+- predict_csv: scores C-terminal sites
+
+Users can choose between using NetCleave pre-trained models or easily retraining the models:
+</p>
 
 ### Using pre-trained models
 
