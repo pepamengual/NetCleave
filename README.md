@@ -73,9 +73,7 @@ NetCleave was specificaly designed to be easily retrained. In order to do so, us
 
 > UniProt/UniParc - data/databases/uniprot and data/databases/uniparc folders. New versions may be found at: https://www.uniprot.org/downloads
 
-<p align="justify">
 **We recomend to use the last version of IEDB while keeping the same UniProt/UniParc version that we provided in this repository**
-</p>
 
 - Define IEDB, UniProt and UniParc file paths on NetCleave main function
 - Define HLA class and HLA family of interest, as detailed in the previous section
