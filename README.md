@@ -14,7 +14,7 @@ In brief, NetCleave maps reported IEDB peptides to protein sequences in UniProt/
 
 If you use NetCleave, please cite us:
 
-> <p align="justify"> NetCleave: an open-source algorithm for predicting C-terminal antigen processing for MHC-I and MHC-II (manuscript in submission)
+> <p align="justify"> Amengual-Rigo, P., Guallar, V. NetCleave: an open-source algorithm for predicting C-terminal antigen processing for MHC-I and MHC-II. Sci Rep 11, 13126 (2021). https://doi.org/10.1038/s41598-021-92632-y
 </p>
 
 NetCleave has the following dependencies:
