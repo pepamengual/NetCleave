@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
-from keras.callbacks import EarlyStopping
+from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.metrics import AUC
 from tensorflow.keras.optimizers import SGD
 from keras import backend as K
