@@ -40,10 +40,10 @@ def main(generate=False, train=False, score_csv=False):
         print("Please, provide an argument. See python3 NetCleave.py -h for more information")
     
     if generate:
-        iedb_path = "../NetCleave_data/mhc_ligand_full.csv" # download and unzip from http://www.iedb.org/database_export_v3.php
-        uniprot_path = "../NetCleave_data/uniprot/uniprot_sprot.fasta" # download and decompress from https://www.uniprot.org/downloads REVIEWED fasta
-        uniparc_path_headers = "../NetCleave_data/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.tab"
-        uniparc_path_sequence = "../NetCleave_data/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.fasta"
+        iedb_path = "data/mhc_ligand_full.csv" # download and unzip from http://www.iedb.org/database_export_v3.php
+        uniprot_path = "data/uniprot/uniprot_sprot.fasta" # download and decompress from https://www.uniprot.org/downloads REVIEWED fasta
+        uniparc_path_headers = "data/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.tab"
+        uniparc_path_sequence = "data/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.fasta"
 
         conditions = {"Description": None, "Parent Protein IRI": None, 
                       "Method/Technique": ("contains", technique),
@@ -68,5 +68,6 @@ def main(generate=False, train=False, score_csv=False):
 
 if __name__ == "__main__":
     generate, train, score_csv = parse_args()
+    generate = True
     main(generate, train, score_csv)
 
