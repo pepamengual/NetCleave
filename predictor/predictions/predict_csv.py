@@ -8,7 +8,7 @@ from keras import backend as K
 from tensorflow.keras.optimizers import SGD
 
 
-def score_set(data_path, model_path, name):
+def score_set(data_path, model_path):
     peptide_lenght = 7
     model = load_model(model_path)
     df = read_data_table(data_path)
@@ -17,10 +17,10 @@ def score_set(data_path, model_path, name):
     encoded_df = generate_encoded_df(encode_data, peptide_lenght, descriptors_df)
     prediction = model.predict(encoded_df)
     prediction_df = pd.DataFrame(prediction, columns=["prediction"])
-    prediction_df["sequence"] = df["sequence"]
+    prediction_df.insert(loc=0, column="sequence", value=df["sequence"])
     
     export_path = "{}_NetCleave.csv".format(data_path.split(".")[0])
-    prediction_df.to_csv(export_path)
+    prediction_df.to_csv(export_path, index=False)
     print("Exporting predictions to: {}".format(export_path))
     return prediction_df
 

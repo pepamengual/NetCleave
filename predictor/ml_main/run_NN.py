@@ -47,7 +47,8 @@ def encode_sequence_data(sequence_table, df):
 def generate_encoded_df(encode_data, peptide_lenght, df):
     print("---> Generating a descriptor dataframe...")
     descriptor_header = df.columns.tolist()
-    encoded_df = pd.DataFrame(encode_data, columns=["{}_{}".format(i, j) for i in range(peptide_lenght) for j in descriptor_header])
+    encoded_df = pd.DataFrame(encode_data, columns=["{}_{}".format(i, j)
+                                                    for i in range(peptide_lenght) for j in descriptor_header])
     return encoded_df
 
 
@@ -59,14 +60,18 @@ def generate_encoded_labeled_df(encoded_df, class_table):
 
 
 def splitting_data(df):
-    data_train, data_val, class_labels_train, class_labels_val = train_test_split(df.drop(['class'], axis=1), df['class'], test_size=0.40, random_state=42, shuffle=True)
-    data_val, data_test, class_labels_val, class_labels_test = train_test_split(data_val, class_labels_val, test_size=0.25, random_state=42)
+    data_train, data_val, class_labels_train, class_labels_val = train_test_split(df.drop(['class'], axis=1),
+                                                                                  df['class'], test_size=0.40,
+                                                                                  random_state=42, shuffle=True)
+    data_val, data_test, class_labels_val, class_labels_test = train_test_split(data_val, class_labels_val,
+                                                                                test_size=0.25, random_state=42)
     return data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test
 
 
 def prepare(data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test):
     data_train, data_val, data_test = data_train.to_numpy(), data_val.to_numpy(), data_test.to_numpy()
-    data_train, data_val, data_test = np.expand_dims(data_train, axis=0), np.expand_dims(data_val, axis=0), np.expand_dims(data_test, axis=0)
+    data_train, data_val, data_test = np.expand_dims(data_train, axis=0), np.expand_dims(data_val, axis=0), \
+                                      np.expand_dims(data_test, axis=0)
     
     data_train = np.reshape(data_train, (data_train.shape[1], 1, data_train.shape[2]))
     data_val = np.reshape(data_val, (data_val.shape[1], 1, data_val.shape[2]))
@@ -86,7 +91,8 @@ def matthews_correlation(y_true, y_pred):
     y_pred_neg = 1 - y_pred_pos
     y_pos = K.round(K.clip(y_true, 0, 1))
     y_neg = 1 - y_pos
-    tp, tn, fp, fn = K.sum(y_pos * y_pred_pos), K.sum(y_neg * y_pred_neg), K.sum(y_neg * y_pred_pos),  K.sum(y_pos * y_pred_neg)
+    tp, tn, fp, fn = K.sum(y_pos * y_pred_pos), K.sum(y_neg * y_pred_neg), \
+                     K.sum(y_neg * y_pred_pos), K.sum(y_pos * y_pred_neg)
     numerator = (tp * tn - fp * fn)
     denominator = K.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
     return numerator / (denominator + K.epsilon())
@@ -112,19 +118,30 @@ def recall(y_true, y_pred):
     return recall
 
 
-def evaluate_models(model, data_train, class_labels_train, data_val, class_labels_val, data_test, class_labels_test, b_size):
-    train_score = model.evaluate(data_train, class_labels_train, batch_size=b_size, verbose=1)
-    val_score = model.evaluate(data_val, class_labels_val, batch_size=b_size, verbose=1)
-    test_score = model.evaluate(data_test, class_labels_test, batch_size=b_size, verbose=1)
+def evaluate_models(model, data_train, class_labels_train, data_val, class_labels_val, data_test, class_labels_test, s):
+    train_score = model.evaluate(data_train, class_labels_train, batch_size=s, verbose=1)
+    val_score = model.evaluate(data_val, class_labels_val, batch_size=s, verbose=1)
+    test_score = model.evaluate(data_test, class_labels_test, batch_size=s, verbose=1)
     return train_score, val_score, test_score
 
 
-def run_NN(encoded_labeled_df, models_export_path, path):
-    path = path.split("/")[-1]
+def plot_loss(history, models_export_path, path):
+    plt.plot(history.history['loss'], label='Train')
+    plt.plot(history.history['val_loss'], label='Test')
+    plt.ylabel("Loss")
+    plt.xlabel("Epoch")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(f"{models_export_path}/model_{path}.png", dpi=300)
+
+
+def run_NN(encoded_labeled_df):
     print("---> NN...")
     b_size = 64
     data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test = splitting_data(encoded_labeled_df)
-    data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test = prepare(data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test)
+    data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test = prepare(data_train, data_val, data_test,
+                                                                                                       class_labels_train, class_labels_val,
+                                                                                                       class_labels_test)
 
     neurons = len(list(encoded_labeled_df.drop(['class'], axis=1)))
     model = Sequential()
@@ -133,22 +150,17 @@ def run_NN(encoded_labeled_df, models_export_path, path):
     model.add(Dropout(0.5))
     model.add(Dense(1, activation='sigmoid'))
     opt = SGD(learning_rate=0.01, momentum=0.00, nesterov=False, name='SGD')
-    model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy', matthews_correlation, precision, recall, AUC()])
+    model.compile(optimizer=opt, loss='binary_crossentropy',
+                  metrics=['accuracy', matthews_correlation, precision, recall, AUC()])
 
     es = EarlyStopping(monitor='val_matthews_correlation', mode='max', patience=7, verbose=1)
-    history = model.fit(data_train, class_labels_train, validation_data=(data_val, class_labels_val), epochs=5000, batch_size=b_size, callbacks=[es], verbose=1)
-    train_score, val_score, test_score = evaluate_models(model, data_train, class_labels_train, data_val, class_labels_val, data_test, class_labels_test, b_size)
-
-    Path(models_export_path).mkdir(parents=True, exist_ok=True)
-    model.save_weights("{}/{}_model.h5".format(models_export_path, models_export_path.split("/")[-1]))
-
-    plt.plot(history.history['loss'], label='Train')
-    plt.plot(history.history['val_loss'], label='Test')
-    plt.ylabel("Loss")
-    plt.xlabel("Epoch")
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig("model_{}.png".format(path), dpi=300)
+    history = model.fit(data_train, class_labels_train,
+                        validation_data=(data_val, class_labels_val),
+                        epochs=5000, batch_size=b_size, callbacks=[es], verbose=1)
+    train_score, val_score, test_score = evaluate_models(model, data_train, class_labels_train,
+                                                         data_val, class_labels_val, data_test, class_labels_test,
+                                                         b_size)
+    return model, history
 
 
 def create_models(training_data_path, model_path):
@@ -163,4 +175,9 @@ def create_models(training_data_path, model_path):
     encoded_df = generate_encoded_df(encode_data, peptide_lenght, df_descriptors)
     
     encoded_labeled_df = generate_encoded_labeled_df(encoded_df, class_table)
-    run_NN(encoded_labeled_df, model_path, training_data_path)
+    model, history = run_NN(encoded_labeled_df)
+    filename_tag = training_data_path.split("/")[-1]
+
+    Path(model_path).mkdir(parents=True, exist_ok=True)
+    model.save_weights(f"{model_path}/{filename_tag}_model.h5")
+    plot_loss(history, model_path, filename_tag)

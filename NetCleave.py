@@ -75,13 +75,11 @@ def main(generate=False, train=False, score_csv=False):
         run_NN.create_models(training_data_path, models_export_path)
 
     if score_csv:
-        csv_path = "example_file_NetCleave_score.csv"
-        csv_tag = "simple_tag"
-        predict_csv.score_set(csv_path, models_export_path, csv_tag)
+        csv_path = "example_score_file.csv"
+        predict_csv.score_set(csv_path, models_export_path)
 
 
 if __name__ == "__main__":
     generate, train, score_csv = parse_args()
-    generate = True
     main(generate, train, score_csv)
 
