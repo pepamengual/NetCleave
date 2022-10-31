@@ -1,5 +1,8 @@
 
 def join_data(uniprot_data, uniparc_data):
+    """
+    Add new entries from UniParc into UniProt
+    """
     print("Merging Uniprot and Uniparc data..")
     for uniprot_id, sequence in uniparc_data.items():
         if uniprot_id not in uniprot_data:
@@ -19,8 +22,7 @@ def locate_peptides(ms_data, uniprot_data):
     adjacent_lenght = 4
     data_dict = {}
     found_peptides = not_found_peptides = mutated_peptides = len_set = 0
-    residues = "ACDEFGHIKLMNPQRSTVWY"
-    residues_set = set([residue for residue in residues])
+    residues_set = set([residue for residue in "ACDEFGHIKLMNPQRSTVWY"])
 
     for uniprot_id, peptide_set in ms_data.items():
         peptide_set = set(peptide_set)
@@ -33,7 +35,7 @@ def locate_peptides(ms_data, uniprot_data):
                     found_peptides += 1
                     selected_peptide, decoy_1, decoy_2 = get_neighbour_sequence(uniprot_data, uniprot_id, peptide,
                                                                                 adjacent_lenght, residues_set)
-                    if selected_peptide != None and decoy_1 != None and decoy_2 != None and \
+                    if selected_peptide is not None and decoy_1 is not None and decoy_2 is not None and \
                             len(selected_peptide) == 7 and len(decoy_1) == 7 and len(decoy_2) == 7:
                         data_dict.setdefault("peptides", []).append(selected_peptide)
                         data_dict.setdefault("decoys", []).append(decoy_1)
@@ -43,9 +45,11 @@ def locate_peptides(ms_data, uniprot_data):
         else:
             not_found_peptides += len(peptide_set)
     
-    print("{} unique peptides".format(len_set))
-    print("{}/{} peptides have been found/not found in Uniprot/Uniparc".format(found_peptides, not_found_peptides))
-    print("{} mutation peptides".format(mutated_peptides))
+    print(f"--> Peptides to map: {len_set}")
+    print(f"----> Peptides labeled with an unknown UniProt/UniParc ID: {not_found_peptides}")
+    print(f"----> Peptides with known UniProt/UniParc ID that could not be mapped: {mutated_peptides}")
+    print(f"----> Peptides correctly mapped: {found_peptides}")
+
     return data_dict
 
 
@@ -64,4 +68,3 @@ def get_neighbour_sequence(uniprot_data, uniprot_id, peptide, adjacent_lenght, r
             return None, None, None
     else:
         return None, None, None
-

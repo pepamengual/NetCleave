@@ -9,7 +9,7 @@ from keras.layers import Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.metrics import AUC
 from tensorflow.keras.optimizers import SGD
-from keras import backend as K
+from keras import backend as k
 
 
 def read_data_table(path):
@@ -70,9 +70,10 @@ def splitting_data(df):
 
 def prepare(data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test):
     data_train, data_val, data_test = data_train.to_numpy(), data_val.to_numpy(), data_test.to_numpy()
-    data_train, data_val, data_test = np.expand_dims(data_train, axis=0), np.expand_dims(data_val, axis=0), \
-                                      np.expand_dims(data_test, axis=0)
-    
+    data_train = np.expand_dims(data_train, axis=0)
+    data_val = np.expand_dims(data_val, axis=0)
+    data_test = np.expand_dims(data_test, axis=0)
+
     data_train = np.reshape(data_train, (data_train.shape[1], 1, data_train.shape[2]))
     data_val = np.reshape(data_val, (data_val.shape[1], 1, data_val.shape[2]))
     data_test = np.reshape(data_test, (data_test.shape[1], 1, data_test.shape[2]))    
@@ -84,38 +85,45 @@ def prepare(data_train, data_val, data_test, class_labels_train, class_labels_va
 
 
 def matthews_correlation(y_true, y_pred):
-    '''Calculates the Matthews correlation coefficient measure for quality
+    """
+    Calculates the Matthews correlation coefficient measure for quality
     of binary classification problems.
-    '''
-    y_pred_pos = K.round(K.clip(y_pred, 0, 1))
+    """
+    y_pred_pos = k.round(k.clip(y_pred, 0, 1))
     y_pred_neg = 1 - y_pred_pos
-    y_pos = K.round(K.clip(y_true, 0, 1))
+    y_pos = k.round(k.clip(y_true, 0, 1))
     y_neg = 1 - y_pos
-    tp, tn, fp, fn = K.sum(y_pos * y_pred_pos), K.sum(y_neg * y_pred_neg), \
-                     K.sum(y_neg * y_pred_pos), K.sum(y_pos * y_pred_neg)
+
+    tp = k.sum(y_pos * y_pred_pos)
+    tn = k.sum(y_neg * y_pred_neg)
+    fp = k.sum(y_neg * y_pred_pos)
+    fn = k.sum(y_pos * y_pred_neg)
+
     numerator = (tp * tn - fp * fn)
-    denominator = K.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
-    return numerator / (denominator + K.epsilon())
+    denominator = k.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
+    return numerator / (denominator + k.epsilon())
 
 
 def precision(y_true, y_pred):
-    '''Calculates the precision, a metric for multi-label classification of
+    """
+    Calculates the precision, a metric for multi-label classification of
     how many selected items are relevant.
-    '''
-    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-    predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
-    precision = true_positives / (predicted_positives + K.epsilon())
-    return precision
+    """
+    true_positives = k.sum(k.round(k.clip(y_true * y_pred, 0, 1)))
+    predicted_positives = k.sum(k.round(k.clip(y_pred, 0, 1)))
+    precision_value = true_positives / (predicted_positives + k.epsilon())
+    return precision_value
 
 
 def recall(y_true, y_pred):
-    '''Calculates the recall, a metric for multi-label classification of
+    """
+    Calculates the recall, a metric for multi-label classification of
     how many relevant items are selected.
-    '''
-    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-    possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
-    recall = true_positives / (possible_positives + K.epsilon())
-    return recall
+    """
+    true_positives = k.sum(k.round(k.clip(y_true * y_pred, 0, 1)))
+    possible_positives = k.sum(k.round(k.clip(y_true, 0, 1)))
+    recall_value = true_positives / (possible_positives + k.epsilon())
+    return recall_value
 
 
 def evaluate_models(model, data_train, class_labels_train, data_val, class_labels_val, data_test, class_labels_test, s):
@@ -135,13 +143,12 @@ def plot_loss(history, models_export_path, path):
     plt.savefig(f"{models_export_path}/model_{path}.png", dpi=300)
 
 
-def run_NN(encoded_labeled_df):
+def run_netcleave_neural_network(encoded_labeled_df):
     print("---> NN...")
     b_size = 64
-    data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test = splitting_data(encoded_labeled_df)
-    data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test = prepare(data_train, data_val, data_test,
-                                                                                                       class_labels_train, class_labels_val,
-                                                                                                       class_labels_test)
+    data_train, data_val, data_test, class_train, class_val, class_test = splitting_data(encoded_labeled_df)
+    data_train, data_val, data_test, class_train, class_val, class_test = prepare(data_train, data_val, data_test,
+                                                                                  class_train, class_val, class_test)
 
     neurons = len(list(encoded_labeled_df.drop(['class'], axis=1)))
     model = Sequential()
@@ -154,28 +161,26 @@ def run_NN(encoded_labeled_df):
                   metrics=['accuracy', matthews_correlation, precision, recall, AUC()])
 
     es = EarlyStopping(monitor='val_matthews_correlation', mode='max', patience=7, verbose=1)
-    history = model.fit(data_train, class_labels_train,
-                        validation_data=(data_val, class_labels_val),
+    history = model.fit(data_train, class_train,
+                        validation_data=(data_val, class_val),
                         epochs=5000, batch_size=b_size, callbacks=[es], verbose=1)
-    train_score, val_score, test_score = evaluate_models(model, data_train, class_labels_train,
-                                                         data_val, class_labels_val, data_test, class_labels_test,
-                                                         b_size)
+    _train_score, _val_score, _test_score = evaluate_models(model, data_train, class_train, data_val,
+                                                            class_val, data_test, class_test, b_size)
     return model, history
 
 
-def create_models(training_data_path, model_path):
+def create_models(training_data_path, model_path, qsar_table):
     print(training_data_path)
     peptide_lenght = 7
     sequence_table, class_table = read_data_table(training_data_path)
 
-    descriptors_path = "predictor/ml_main/QSAR_table.csv"
-    df_descriptors = read_descriptors_table(descriptors_path)
+    df_descriptors = read_descriptors_table(qsar_table)
 
     encode_data = encode_sequence_data(sequence_table, df_descriptors)
     encoded_df = generate_encoded_df(encode_data, peptide_lenght, df_descriptors)
     
     encoded_labeled_df = generate_encoded_labeled_df(encoded_df, class_table)
-    model, history = run_NN(encoded_labeled_df)
+    model, history = run_netcleave_neural_network(encoded_labeled_df)
     filename_tag = training_data_path.split("/")[-1]
 
     Path(model_path).mkdir(parents=True, exist_ok=True)
