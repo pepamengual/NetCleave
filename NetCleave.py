@@ -10,6 +10,7 @@ Command:\n \
 Run: python3 NetCleave.py --ARG\
 "
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description=HELP, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--generate', help='Generate training data for the neural network', action='store_true')
