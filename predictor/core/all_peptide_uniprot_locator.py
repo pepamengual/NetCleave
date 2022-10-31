@@ -1,3 +1,4 @@
+
 def join_data(uniprot_data, uniparc_data):
     print("Merging Uniprot and Uniparc data..")
     for uniprot_id, sequence in uniparc_data.items():

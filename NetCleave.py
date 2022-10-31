@@ -30,8 +30,10 @@ def generating_data(iedb_path, uniprot_path, uniparc_path_headers, uniparc_path_
 
 def main(generate=False, train=False, score_csv=False):
     mhc_class, technique, mhc_family = "I", "mass spectrometry", "HLA-A"
-    training_data_path = "data/training_data/{}_{}_{}".format(mhc_class, technique.replace(" ", "-"), mhc_family.replace("*", "").replace(":", ""))
-    models_export_path = "data/models/{}_{}_{}".format(mhc_class, technique.replace(" ", "-"), mhc_family.replace("*", "").replace(":", ""))
+    technique_name = technique.replace(" ", "-")
+    mhc_family_name = mhc_family.replace("*", "").replace(":", "")
+    training_data_path = f"data/training_data/{mhc_class}_{technique_name}_{mhc_family_name}"
+    models_export_path = f"data/models/{mhc_class}_{technique_name}_{mhc_family_name}"
 
     if not any([generate, train, score_csv]):
         print("Please, provide an argument. See python3 NetCleave.py -h for more information")
@@ -50,7 +52,8 @@ def main(generate=False, train=False, score_csv=False):
                       #"Parent Species": ("contains", "Homo sapiens")
                      }
 
-        selected_dictionary = generating_data(iedb_path, uniprot_path, uniparc_path_headers, uniparc_path_sequence, conditions)
+        selected_dictionary = generating_data(iedb_path, uniprot_path, uniparc_path_headers,
+                                              uniparc_path_sequence, conditions)
         all_training_data_generator.prepare_cleavage_data(selected_dictionary, training_data_path)
 
     if train:
@@ -58,7 +61,8 @@ def main(generate=False, train=False, score_csv=False):
 
     if score_csv:
         csv_path = "example_file_NetCleave_score.csv"
-        predict_csv.score_set(csv_path, models_export_path, "ABC")
+        csv_tag = "simple_tag"
+        predict_csv.score_set(csv_path, models_export_path, csv_tag)
 
 
 if __name__ == "__main__":
