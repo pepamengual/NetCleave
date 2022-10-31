@@ -41,7 +41,7 @@ def parse_args():
                         type=str,
                         help="Path to IEDB file;"
                              "download and unzip from http://www.iedb.org/database_export_v3.php",
-                        default=f"{package_dir}/data/databases/iedb/mhc_ligand_full.csv"
+                        default=f"{package_dir}/data/databases/iedb/mhc_ligand_reduced.csv"
                         )
 
     parser.add_argument("--uniprot_path",
