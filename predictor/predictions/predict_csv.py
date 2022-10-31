@@ -1,10 +1,7 @@
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
-import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
-from keras import backend as K
 from tensorflow.keras.optimizers import SGD
 
 

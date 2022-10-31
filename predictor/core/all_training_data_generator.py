@@ -2,11 +2,12 @@ from pathlib import Path
 
 
 def prepare_cleavage_data(selected_dictionary, export_path):
-    """ Iterates for every key of selected_dictionary: C-terminal residue of MS peptides
-        Creates a list consisting of all other peptides with different C-terminal residue
-        Gets cleavage regions (+3) residues from the C-terminal samples
-        Generates two equal size lists of cleavaged and non cleavaged samples having the same residue in C-terminal
-        Exports data in a given path
+    """
+    Iterates for every key of selected_dictionary: C-terminal residue of MS peptides
+    Creates a list consisting of all other peptides with different C-terminal residue
+    Gets cleavage regions (+3) residues from the C-terminal samples
+    Generates two equal size lists of cleavaged and non cleavaged samples having the same residue in C-terminal
+    Exports data in a given path
     """
 
     Path(export_path).mkdir(parents=True, exist_ok=True)

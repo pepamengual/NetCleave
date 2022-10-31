@@ -2,7 +2,7 @@
 def join_data(uniprot_data, uniparc_data):
     print("Merging Uniprot and Uniparc data..")
     for uniprot_id, sequence in uniparc_data.items():
-        if not uniprot_id in uniprot_data:
+        if uniprot_id not in uniprot_data:
             uniprot_data.setdefault(uniprot_id, sequence)
     return uniprot_data
 
@@ -26,13 +26,15 @@ def locate_peptides(ms_data, uniprot_data):
         peptide_set = set(peptide_set)
         len_set += len(peptide_set)
         if uniprot_id in uniprot_data:
-            peptide_set = [peptide[-5:] for peptide in peptide_set] #remove duplicated C-term cleavage per uniprot ID
-            peptide_set = set(peptide_set) #avoid duplicated entries of longer peptides
+            peptide_set = [peptide[-5:] for peptide in peptide_set]  # remove duplicated C-term cleavage per uniprot ID
+            peptide_set = set(peptide_set)  # avoid duplicated entries of longer peptides
             for peptide in peptide_set:
                 if peptide in uniprot_data[uniprot_id]:
                     found_peptides += 1
-                    selected_peptide, decoy_1, decoy_2 = get_neighbour_sequence(uniprot_data, uniprot_id, peptide, adjacent_lenght, residues_set)
-                    if selected_peptide != None and decoy_1 != None and decoy_2 != None and len(selected_peptide) == 7 and len(decoy_1) == 7 and len(decoy_2) == 7:
+                    selected_peptide, decoy_1, decoy_2 = get_neighbour_sequence(uniprot_data, uniprot_id, peptide,
+                                                                                adjacent_lenght, residues_set)
+                    if selected_peptide != None and decoy_1 != None and decoy_2 != None and \
+                            len(selected_peptide) == 7 and len(decoy_1) == 7 and len(decoy_2) == 7:
                         data_dict.setdefault("peptides", []).append(selected_peptide)
                         data_dict.setdefault("decoys", []).append(decoy_1)
                         data_dict.setdefault("decoys", []).append(decoy_2)
