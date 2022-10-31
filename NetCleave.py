@@ -25,8 +25,8 @@ def parse_args():
                         dest="technique",
                         type=str,
                         help="Technique to focus the predictions",
-                        choices=["mass spectrometry", "radioactivity", "fluorescence"],
-                        default="mass spectrometry"
+                        choices=["mass_spectrometry", "radioactivity", "fluorescence"],
+                        default="mass_spectrometry"
                         )
 
     parser.add_argument("--mhc_family",
@@ -120,6 +120,7 @@ def generating_data(iedb_path, uniprot_path, uniparc_path_headers, uniparc_path_
 
 def main():
     args = parse_args()
+    args.technique = args.technique.replace("_", " ")
     technique_name = args.technique.replace(" ", "-")
     mhc_family_name = args.mhc_family.replace("*", "").replace(":", "")
 
@@ -128,11 +129,6 @@ def main():
 
     training_data_path = f"data/training_data/{args.mhc_class}_{technique_name}_{mhc_family_name}"
     models_export_path = f"data/models/{args.mhc_class}_{technique_name}_{mhc_family_name}"
-
-    args.generate = False
-    args.train = False
-    args.score_csv = "example_score_file.csv"
-    args.score_fasta = "example_fasta_file.fasta"
 
     if args.generate:
         conditions = {"Method/Technique": ("contains", args.technique),
