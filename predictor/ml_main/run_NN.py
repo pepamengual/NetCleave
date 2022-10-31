@@ -4,12 +4,12 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import numpy as np
-from keras.models import Sequential
-from keras.layers import Dense, Dropout
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.metrics import AUC
 from tensorflow.keras.optimizers import SGD
-from keras import backend as k
+from tensorflow.keras import backend as k
 
 
 def read_data_table(path):
