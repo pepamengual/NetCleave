@@ -74,9 +74,9 @@ def prepare(data_train, data_val, data_test, class_labels_train, class_labels_va
     data_val = np.expand_dims(data_val, axis=0)
     data_test = np.expand_dims(data_test, axis=0)
 
-    data_train = np.reshape(data_train, (data_train.shape[1], 1, data_train.shape[2]))
-    data_val = np.reshape(data_val, (data_val.shape[1], 1, data_val.shape[2]))
-    data_test = np.reshape(data_test, (data_test.shape[1], 1, data_test.shape[2]))    
+    data_train = np.reshape(data_train, (data_train.shape[1], data_train.shape[2]))
+    data_val = np.reshape(data_val, (data_val.shape[1], data_val.shape[2]))
+    data_test = np.reshape(data_test, (data_test.shape[1], data_test.shape[2]))
 
     class_labels_train = class_labels_train.to_numpy().reshape((-1, ))
     class_labels_val = class_labels_val.to_numpy().reshape((-1, ))
