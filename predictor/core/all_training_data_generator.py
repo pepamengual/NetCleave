@@ -1,5 +1,6 @@
 from pathlib import Path
 
+
 def prepare_cleavage_data(selected_dictionary, export_path):
     """ Iterates for every key of selected_dictionary: C-terminal residue of MS peptides
         Creates a list consisting of all other peptides with different C-terminal residue
@@ -24,6 +25,7 @@ def prepare_cleavage_data(selected_dictionary, export_path):
         for cleavage_region in selected_cleavages:
             data = "{}\t{}\n".format(cleavage_region, 1)
             f.write(data)
+
 
 def prepare_score_data(selected_dictionary, export_path):
     folder_path = "/".join(export_path.split("/")[:-1])

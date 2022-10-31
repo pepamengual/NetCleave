@@ -9,6 +9,7 @@ Command:\n \
 ----------\n \
 Run: python3 NetCleave.py --ARG\
 "
+
 def parse_args():
     parser = argparse.ArgumentParser(description=HELP, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--generate', help='Generate training data for the neural network', action='store_true')
@@ -16,6 +17,7 @@ def parse_args():
     parser.add_argument('--score_csv', help='Predict a set of cleavage sites from csv', action='store_true')
     args = parser.parse_args()
     return args.generate, args.train, args.score_csv
+
 
 def generating_data(iedb_path, uniprot_path, uniparc_path_headers, uniparc_path_sequence, conditions):
     iedb_data = peptide_extractor.extract_peptide_data(iedb_path, conditions)
@@ -25,10 +27,11 @@ def generating_data(iedb_path, uniprot_path, uniparc_path_headers, uniparc_path_
     selected_dictionary = all_peptide_uniprot_locator.locate_peptides(iedb_data, sequence_data)
     return selected_dictionary
 
+
 def main(generate=False, train=False, score_csv=False):
     mhc_class, technique, mhc_family = "I", "mass spectrometry", "HLA-A"
-    training_data_path = "data/training_data/{}_{}_{}".format(mhc_class, technique.replace(" ", "-"), mhc_family)
-    models_export_path = "data/models/{}_{}_{}".format(mhc_class, technique.replace(" ", "-"), mhc_family)
+    training_data_path = "data/training_data/{}_{}_{}".format(mhc_class, technique.replace(" ", "-"), mhc_family.replace("*", "").replace(":", ""))
+    models_export_path = "data/models/{}_{}_{}".format(mhc_class, technique.replace(" ", "-"), mhc_family.replace("*", "").replace(":", ""))
 
     if not any([generate, train, score_csv]):
         print("Please, provide an argument. See python3 NetCleave.py -h for more information")
@@ -46,6 +49,7 @@ def main(generate=False, train=False, score_csv=False):
                       #"Name": ("contains", "Homo sapiens"),
                       #"Parent Species": ("contains", "Homo sapiens")
                      }
+
         selected_dictionary = generating_data(iedb_path, uniprot_path, uniparc_path_headers, uniparc_path_sequence, conditions)
         all_training_data_generator.prepare_cleavage_data(selected_dictionary, training_data_path)
 
@@ -56,6 +60,8 @@ def main(generate=False, train=False, score_csv=False):
         csv_path = "example_file_NetCleave_score.csv"
         predict_csv.score_set(csv_path, models_export_path, "ABC")
 
+
 if __name__ == "__main__":
     generate, train, score_csv = parse_args()
     main(generate, train, score_csv)
+

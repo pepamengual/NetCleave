@@ -7,6 +7,7 @@ from keras.layers import Dense, Dropout
 from keras import backend as K
 from tensorflow.keras.optimizers import SGD
 
+
 def score_set(data_path, model_path, name):
     peptide_lenght = 7
     model = load_model(model_path)
@@ -23,6 +24,7 @@ def score_set(data_path, model_path, name):
     print("Exporting predictions to: {}".format(export_path))
     return prediction_df
 
+
 def load_model(model_path):
     model_file_path = "{}/{}_model.h5".format(model_path, model_path.split("/")[-1])
     neurons = 336
@@ -36,10 +38,12 @@ def load_model(model_path):
     model.load_weights(model_file_path)
     return model
 
+
 def read_data_table(path):
     print("---> Reading training data...")
     df = pd.read_csv(path, sep="\t", index_col=None, header=0)
     return df
+
 
 def read_descriptors_table():
     print("---> Reading descriptors...")
@@ -49,6 +53,7 @@ def read_descriptors_table():
     scaled_data = scaler.fit_transform(df)
     scaled_df = pd.DataFrame(scaled_data, columns=df.columns, index=df.index)
     return scaled_df
+
 
 def encode_sequence_data(sequence_table, df):
     print("---> Encoding data using the descriptors...")
@@ -62,6 +67,7 @@ def encode_sequence_data(sequence_table, df):
             sequence_encode.extend(encode_map[r])
         encode_data.append(sequence_encode)
     return encode_data
+
 
 def generate_encoded_df(encode_data, peptide_lenght, df):
     print("---> Generating a descriptor dataframe...")

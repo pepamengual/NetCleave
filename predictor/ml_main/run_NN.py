@@ -11,6 +11,7 @@ from tensorflow.keras.metrics import AUC
 from tensorflow.keras.optimizers import SGD
 from keras import backend as K
 
+
 def read_data_table(path):
     print("---> Reading training data...")
     training_data_file = "{}/{}_sequence_class.txt".format(path, path.split("/")[-1])
@@ -19,6 +20,7 @@ def read_data_table(path):
     class_table = df['class']
     return sequence_table, class_table
 
+
 def read_descriptors_table(path):
     print("---> Reading descriptors...")
     df = pd.read_csv(path, sep=",", header=0, index_col=0)
@@ -26,6 +28,7 @@ def read_descriptors_table(path):
     scaled_data = scaler.fit_transform(df)
     scaled_df = pd.DataFrame(scaled_data, columns=df.columns, index=df.index)
     return scaled_df
+
 
 def encode_sequence_data(sequence_table, df):
     print("---> Encoding data using the descriptors...")
@@ -40,11 +43,13 @@ def encode_sequence_data(sequence_table, df):
         encode_data.append(sequence_encode)
     return encode_data
 
+
 def generate_encoded_df(encode_data, peptide_lenght, df):
     print("---> Generating a descriptor dataframe...")
     descriptor_header = df.columns.tolist()
     encoded_df = pd.DataFrame(encode_data, columns=["{}_{}".format(i, j) for i in range(peptide_lenght) for j in descriptor_header])
     return encoded_df
+
 
 def generate_encoded_labeled_df(encoded_df, class_table):
     print("---> Labeling the descriptor dataframe...")
@@ -52,10 +57,12 @@ def generate_encoded_labeled_df(encoded_df, class_table):
     encoded_labeled_df = encoded_labeled_df.sample(frac=1).reset_index(drop=True)
     return encoded_labeled_df
 
+
 def splitting_data(df):
     data_train, data_val, class_labels_train, class_labels_val = train_test_split(df.drop(['class'], axis=1), df['class'], test_size=0.40, random_state=42, shuffle=True)
     data_val, data_test, class_labels_val, class_labels_test = train_test_split(data_val, class_labels_val, test_size=0.25, random_state=42)
     return data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test
+
 
 def prepare(data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test):
     data_train, data_val, data_test = data_train.to_numpy(), data_val.to_numpy(), data_test.to_numpy()
@@ -70,6 +77,7 @@ def prepare(data_train, data_val, data_test, class_labels_train, class_labels_va
     class_labels_test = class_labels_test.to_numpy().reshape((-1, ))
     return data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test
 
+
 def matthews_correlation(y_true, y_pred):
     '''Calculates the Matthews correlation coefficient measure for quality
     of binary classification problems.
@@ -83,6 +91,7 @@ def matthews_correlation(y_true, y_pred):
     denominator = K.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
     return numerator / (denominator + K.epsilon())
 
+
 def precision(y_true, y_pred):
     '''Calculates the precision, a metric for multi-label classification of
     how many selected items are relevant.
@@ -91,6 +100,7 @@ def precision(y_true, y_pred):
     predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
     precision = true_positives / (predicted_positives + K.epsilon())
     return precision
+
 
 def recall(y_true, y_pred):
     '''Calculates the recall, a metric for multi-label classification of
@@ -101,11 +111,13 @@ def recall(y_true, y_pred):
     recall = true_positives / (possible_positives + K.epsilon())
     return recall
 
+
 def evaluate_models(model, data_train, class_labels_train, data_val, class_labels_val, data_test, class_labels_test, b_size):
     train_score = model.evaluate(data_train, class_labels_train, batch_size=b_size, verbose=1)
     val_score = model.evaluate(data_val, class_labels_val, batch_size=b_size, verbose=1)
     test_score = model.evaluate(data_test, class_labels_test, batch_size=b_size, verbose=1)
     return train_score, val_score, test_score
+
 
 def run_NN(encoded_labeled_df, models_export_path, path):
     path = path.split("/")[-1]
@@ -113,8 +125,7 @@ def run_NN(encoded_labeled_df, models_export_path, path):
     b_size = 64
     data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test = splitting_data(encoded_labeled_df)
     data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test = prepare(data_train, data_val, data_test, class_labels_train, class_labels_val, class_labels_test)
-    
-    
+
     neurons = len(list(encoded_labeled_df.drop(['class'], axis=1)))
     model = Sequential()
     model.add(Dense(int(neurons), input_dim=neurons, activation='tanh', kernel_initializer="glorot_normal"))
@@ -138,6 +149,7 @@ def run_NN(encoded_labeled_df, models_export_path, path):
     plt.legend()
     plt.tight_layout()
     plt.savefig("model_{}.png".format(path), dpi=300)
+
 
 def create_models(training_data_path, model_path):
     print(training_data_path)

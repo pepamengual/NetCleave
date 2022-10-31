@@ -1,3 +1,4 @@
+
 def extract_uniprot_data(input_path):
     """
     Reads uniprot file and converts it into a dictionary where:

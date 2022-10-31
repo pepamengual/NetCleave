@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def extract_peptide_data(input_file_path, conditions_dictionary):
     """ Extracts peptides in IEDB under user defined conditions
         Returns a dictionary with keys: uniprot_id, values: peptide_list
@@ -11,6 +12,7 @@ def extract_peptide_data(input_file_path, conditions_dictionary):
     print("Creating the dictionary...")
     data = create_dictionary(df_filtered)
     return data
+
 
 def generate_df(input_file_path, conditions_dictionary):
     """ Only reads columns listed in dictionary keys (condition keys)
@@ -24,6 +26,7 @@ def generate_df(input_file_path, conditions_dictionary):
     df = df.dropna()
     df = df.reset_index(drop=True)
     return df
+
 
 def apply_conditions(df, conditions_dictionary):
     """ Apply conditions reported in the dictionary of conditions
@@ -49,6 +52,7 @@ def apply_conditions(df, conditions_dictionary):
             if condition_search == "is_in":
                 df = df[df[condition_type].isin(condition_value)]
     return df
+
 
 def create_dictionary(df):
     """ Reduces the df to the minimum needed information: peptide sequence and uniprot entry

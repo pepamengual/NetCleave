@@ -5,6 +5,7 @@ def join_data(uniprot_data, uniparc_data):
             uniprot_data.setdefault(uniprot_id, sequence)
     return uniprot_data
 
+
 def locate_peptides(ms_data, uniprot_data):
     """
     Looks for adjacent C-terminal sequence for each peptide
@@ -43,6 +44,7 @@ def locate_peptides(ms_data, uniprot_data):
     print("{}/{} peptides have been found/not found in Uniprot/Uniparc".format(found_peptides, not_found_peptides))
     print("{} mutation peptides".format(mutated_peptides))
     return data_dict
+
 
 def get_neighbour_sequence(uniprot_data, uniprot_id, peptide, adjacent_lenght, residues_set):
     adjacent_sequences = uniprot_data[uniprot_id].split(peptide)
