@@ -53,7 +53,8 @@ def plot_cleavage_site_frequencies_set(prediction_dfs, plot_path):
     plt.axhline(y=0.5, color="black", lw=1.5)
     plt.ylabel("NetCleave score")
     plt.xlabel("Cleavage site position in sequence")
-    fig.savefig(plot_path, dpi=300)
+    plt.ylim(0, 1)
+    fig.savefig(plot_path, dpi=300, bbox_inches="tight")
 
 
 def load_model(model_path):
