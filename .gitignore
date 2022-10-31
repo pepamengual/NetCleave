@@ -1,2 +1,8 @@
 *.pyc
 *__pycache__
+data/databases/iedb/mhc_ligand_full.csv
+data/databases/uniprot/uniprot_sprot.fasta
+data/databases/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.tab
+data/databases/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.fasta
+data/training_data/*
+data/models/*
