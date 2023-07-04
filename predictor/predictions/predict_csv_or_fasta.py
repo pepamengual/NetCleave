@@ -27,20 +27,25 @@ def score_set(data_path, model_path, qsar_table):
         encode_data = encode_sequence_data(df, descriptors_df)
         encoded_df = generate_encoded_df(encode_data, peptide_lenght, descriptors_df)
         prediction = model.predict(encoded_df)
-        prediction_df = pd.DataFrame(prediction, columns=["prediction"])
-        prediction_df.insert(loc=0, column="sequence", value=df["sequence"])
+        prediction_df = pd.DataFrame(prediction, columns=["Cleavage site prediction score"])  # prediction
+        df["CS"] = [f"{i[:4]}|{i[4:]}" for i in df["sequence"]]
+        prediction_df.insert(loc=0, column="Cleavage site", value=df["CS"])  # sequence
+        prediction_df.insert(loc=1, column="Cleavage site after position", value=[i+4 for i, _ in enumerate(prediction_df["Cleavage site"])])
+        prediction_df.insert(loc=2, column="Cleavage site after residue", value=[i[3] for i in prediction_df["Cleavage site"]])
+        prediction_df['Cleavage probability'] = prediction_df['Cleavage site prediction score'].apply(lambda x: '*' if 0.5 < x < 0.65 else '**' if 0.65 < x < 0.8 else '***' if x > 0.8 else '')
 
         if name == "csv":
             export_path = "{}_NetCleave.csv".format(data_path.split(".")[0])
+            prediction_df.to_csv(export_path, index=False)
         else:
-            export_path = "{}_{}_NetCleave.csv".format(data_path.split(".")[0], name)
-        prediction_df.to_csv(export_path, index=False)
+            export_path = "{}_{}_NetCleave.xlsx".format(data_path.split(".")[0], name)
+            prediction_df.to_excel(export_path, index=False)
         prediction_dfs.setdefault(name, prediction_df)
         print("Exporting predictions to: {}".format(export_path))
 
-    if data_path.endswith(".fasta") or data_path.endswith(".fst"):
-        plot_path = "{}_NetCleave.png".format(data_path.split(".")[0])
-        plot_cleavage_site_frequencies_set(prediction_dfs, plot_path)
+    #if data_path.endswith(".fasta") or data_path.endswith(".fst"):
+    #    plot_path = "{}_NetCleave.png".format(data_path.split(".")[0])
+    #    plot_cleavage_site_frequencies_set(prediction_dfs, plot_path)
 
 
 def plot_cleavage_site_frequencies_set(prediction_dfs, plot_path):
