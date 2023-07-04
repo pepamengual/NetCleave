@@ -5,7 +5,6 @@ data/databases/uniprot/uniprot_sprot.fasta
 data/databases/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.tab
 data/databases/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.fasta
 data/training_data/*
-data/models/*
 example_score_file_NetCleave.csv
 example_fasta_file.fasta
 example_fasta_file_5U64_1_NetCleave.csv
