@@ -1,0 +1,9 @@
+argparse
+pandas
+numpy
+matplotlib
+pathlib
+scikit-learn
+keras
+tensorflow
+openpyxl

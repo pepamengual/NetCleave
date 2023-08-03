@@ -2,6 +2,7 @@
 *__pycache__
 data/databases/iedb/mhc_ligand_full.csv
 data/databases/uniprot/uniprot_sprot.fasta
+data/databases/iedb/new/*
 data/databases/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.tab
 data/databases/uniparc/uniparc-yourlist_M20200416A94466D2655679D1FD8953E075198DA854EB3ES.fasta
 data/training_data/*
@@ -11,3 +12,5 @@ example_fasta_file_5U64_1_NetCleave.csv
 example_fasta_file_5U64_2_NetCleave.csv
 example_fasta_file_NetCleave.png
 mhc_ligand_reduced.csv
+data/databases/iedb/old/*
+data/models/I_mass-spectrometry_HLA_old/*

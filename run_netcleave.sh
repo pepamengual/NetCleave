@@ -5,7 +5,7 @@ technique="mass_spectrometry"  # Technique to be modelled
 mhc_family="HLA" # DRB1        # MHC family to be modelled
 fasta="example/example.fasta"  # Input fasta file
 
-# Add --generate and --generate flags to train the model
+# Add --generate and --train flags to train the model
 
 # Predict only
 python $netcleave_path \
